@@ -1,0 +1,12 @@
+#stuff im ignoring
+*.log
+
+.env
+
+private/
+*.crt
+*.key
+*.pem
+
+*.bak
+*.tmp
