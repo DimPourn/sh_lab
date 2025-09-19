@@ -1,4 +1,11 @@
-#stuff im ignoring
+# with the help of gitignore.io
+
+# MacOS_Specific
+.DS_store
+.AppleDouble
+.LSOverride
+*.icloud
+
 *.log
 
 .env
