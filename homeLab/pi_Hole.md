@@ -7,4 +7,7 @@
 - Im choosing to go for a more privacy oriented DNS, instead of sending queries to Google. Quad9 and Cloudflare.
 - I also enabled live update on the Query Log so its easier to see what get blocked and what not.
 
+### 27/09/2025
+- Added phising.army blocklist
+
 (next goal is to make it more secure with https)
