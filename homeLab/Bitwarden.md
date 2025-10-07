@@ -4,3 +4,7 @@
 - Through Docker I ran Vaultwarden.
 -  I also registered a subdomain to make everything a tiny bit more clean and tidy though I went with the free option of DuckDNS.( i am a uni student after all ).
 -  With the help of chatgpt, i used a script to automate the update of my ip so i dont have to do it manually.
+  ### update 7/10/2025
+- set up subdomain with DUCKDNS.
+- Got https certificate through LetsEncrypt and made the https version of the site with reverse proxy Caddy.
+- Disabled logins for better security.
