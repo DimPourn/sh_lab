@@ -8,3 +8,4 @@
 - set up subdomain with DUCKDNS.
 - Got https certificate through LetsEncrypt and made the https version of the site with reverse proxy Caddy.
 - Disabled logins for better security.
+- Found out i was behind a CGNAT and changed the ipv6 to ipv4 so its compatible with most devices.
