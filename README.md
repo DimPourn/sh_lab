@@ -1,11 +1,33 @@
 # Personal Homelab project
 ## Overview:
 Homelab setup for me to practice creating, securing and maintaining services with the help of Docker and Rasberry Pi
-## Key Tools:
+## Key Tools and Features:
 - **Vaultwarden** (password manager)
 - **Caddy** (Reverse Proxy)
 - **Rasberry Pi 5** (Pi-Hole)
 - **Docker** (Container)
+- **Zero-trust networking** via Tailscale with automatic HTTPS
+- **Network-wide protection** - Pi-hole blocks ads/trackers for entire network
+- **Privacy-first DNS** - Unbound for recursive DNS (no third-party resolvers)
+- **Automated updates** - Watchtower keeps containers current with notifications
+- **Real-time monitoring** - Uptime Kuma tracks all services
+- **Self-hosted password manager** - Vaultwarden (Bitwarden-compatible)
+- **Private photo cloud** - Immich with AI-powered organization
+
+## Pi-hole Setup
+### Blocklists
+
+**Default lists:**
+- StevenBlack's Unified Hosts List
+- Malicious domains list
+- Ad-serving domains
+
+**Custom additions:**
+- Tracking and telemetry domains
+- Crypto-mining domains
+- Adult content (optional)
+
+**Total domains blocked:** ~1.2M+
 
 ## Vaultwarden Setup
 ### Decided to use Vaultwardens self-host, Bitwarden as my password manager.
