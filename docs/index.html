@@ -262,8 +262,7 @@
     <a href="#services">02 Services</a>
     <a href="#security">03 Security</a>
     <a href="#incidents">04 Incidents</a>
-    <a href="#roadmap">05 Roadmap</a>
-    <a href="#stack">06 Stack</a>
+    <a href="#stack">05 Stack</a>
   </div>
 </nav>
 
@@ -343,7 +342,6 @@
       <li><b>Least privilege on containers</b> — <code>cap_drop: ALL</code> with narrow, explicit <code>cap_add</code> only where genuinely needed; <code>no-new-privileges</code> everywhere; non-root UID/GID mapping and read-only root filesystems where the image supports it.</li>
       <li><b>Secrets out of configs and version control</b> — credentials injected via environment files or mounted read-only secret files (e.g. scrape jobs authenticate via <code>bearer_token_file</code>, never a token in a checked-in config).</li>
       <li><b>Supply-chain-aware automation</b> — automatic image updates are useful but not blind: every stateful, data-bearing service is excluded from auto-following tags, so patch automation can't silently corrupt a database.</li>
-      <li class="tradeoff"><b>One documented, conscious exception</b> — cAdvisor still runs privileged rather than with a minimal capability set. Deliberately deferred, not overlooked: it needs deep host/cgroup introspection, and a wrong minimal capability set fails <em>silently</em> (metrics quietly stop), which is worse than the current known trade-off.</li>
     </ul>
   </div>
 </section>
@@ -384,20 +382,9 @@
   </div>
 </section>
 
-<section id="roadmap">
-  <div class="wrap reveal">
-    <h2><span class="n">[05]</span> Current gaps &amp; roadmap</h2>
-    <ul class="roadmap">
-      <li><b>Backups</b> — the single biggest reliability gap. Plan: Kopia against a NAS once online — deliberately <em>not</em> a laptop, since a sleep-prone device is an unreliable backup target in practice.</li>
-      <li><b>Storage migration</b> — moving the root filesystem and volumes off the SD card onto NVMe.</li>
-      <li><b>Home Assistant</b> — onboarding done; connecting the first smart device and finishing API integration into the monitoring stack.</li>
-    </ul>
-  </div>
-</section>
-
 <section id="stack">
   <div class="wrap reveal">
-    <h2><span class="n">[06]</span> Stack summary</h2>
+    <h2><span class="n">[05]</span> Stack summary</h2>
     <div class="tablebox">
       <table>
         <thead><tr><th>Layer</th><th>Tools</th></tr></thead>

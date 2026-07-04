@@ -44,7 +44,6 @@ A self-hosted homelab running on a Raspberry Pi 5, built as a personal infrastru
 - **Network segmentation** — multiple isolated Docker networks instead of a single flat network, to contain the blast radius of any one compromised container
 - **Secrets kept out of configs and version control** — credentials and API tokens are injected via environment files or mounted as dedicated read-only secret files (e.g. a metrics scrape job authenticates via a `bearer_token_file` rather than a token embedded in a checked-in config)
 - **Supply-chain-aware automation** — automatic container updates are useful but not applied blindly: after a real incident (below), every stateful/data-bearing service is explicitly excluded from auto-following image tags, so patch automation can't silently corrupt a database
-- **One documented, conscious exception**: cAdvisor currently still runs in Docker's `privileged` mode rather than a minimal capability set. This was evaluated and deliberately deferred rather than hardened blindly — cAdvisor needs deep host/cgroup introspection to do its job, and getting a minimal capability set wrong tends to fail *silently* (metrics quietly stop reporting rather than the container erroring), which is a worse outcome than the current known trade-off.
 
 ## Incidents & lessons learned
 
@@ -58,12 +57,6 @@ Diagnosis peeled back, in order: (a) the app didn't trust its own reverse proxy'
 
 **3. Cross-service metrics scraping failed with no application-level error at all.**
 Wiring a service's metrics into the monitoring stack, requests timed out intermittently. The application config, DNS, and container health were all fine — the actual cause was the host firewall: one Docker subnet had correctly been allow-listed to reach the target port, but a second, unrelated subnet needed the same access and had simply been missed when the rule was written. A good example of "works from container A, not container B" almost always meaning the network/firewall layer, not the app.
-
-## Current gaps / roadmap
-
-- **Backups** — the single biggest reliability gap right now. Nothing is currently backed up (password vault, DNS config, document store, log history, photo library). Plan is to run Kopia against a NAS once it's online, specifically *not* a laptop, since a sleep-prone always-on-paper device is an unreliable backup target in practice.
-- **Storage migration** — moving the root filesystem/volumes off the SD card onto NVMe.
-- **Home Assistant** — onboarding is done; still connecting the first smart device and finishing API integration into the monitoring stack.
 
 ## Stack summary
 
