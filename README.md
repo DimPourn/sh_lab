@@ -1,4 +1,7 @@
 # Personal Homelab project
+
+**📖 Project site: [dimpourn.github.io/sh_lab](https://dimpourn.github.io/sh_lab/)** — full write-up of the current architecture, security posture, and incidents/lessons learned. The latest version also lives in [`homeLab/pi5-homelab.md`](homeLab/pi5-homelab.md).
+
 ## Overview:
 Homelab setup for me to practice creating, securing and maintaining services with the help of Docker and Rasberry Pi
 ## Key Tools and Features:

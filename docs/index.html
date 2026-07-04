@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pi 5 Homelab — Self-Hosted Infrastructure &amp; Security Project</title>
+<meta name="description" content="A hardened, self-hosted homelab on a Raspberry Pi 5 — zero public attack surface, defense in depth, full observability.">
+<style>
+  :root {
+    --bg: #0b0f14;
+    --bg-alt: #10161d;
+    --card: #141c25;
+    --border: #223041;
+    --text: #d7e0ea;
+    --muted: #8fa1b3;
+    --accent: #4fd1a5;
+    --accent-2: #5aa9e6;
+    --warn: #e6b45a;
+    --mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f8fa; --bg-alt: #eef1f5; --card: #ffffff; --border: #d8dfe6;
+      --text: #1d2833; --muted: #5a6b7b; --accent: #0e8a66; --accent-2: #2270b8; --warn: #a5761b;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 1.25rem; }
+
+  header.hero {
+    padding: 5rem 0 3.5rem;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% -10%, rgba(79,209,165,.10), transparent),
+      radial-gradient(ellipse 60% 50% at 20% 0%, rgba(90,169,230,.10), transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .kicker {
+    font-family: var(--mono); font-size: .8rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+  }
+  h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); line-height: 1.15; letter-spacing: -.02em; margin-bottom: 1rem; }
+  .lede { font-size: 1.12rem; color: var(--muted); max-width: 42em; }
+  .badges { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.5rem; }
+  .badge {
+    font-family: var(--mono); font-size: .74rem; padding: .3rem .65rem;
+    border: 1px solid var(--border); border-radius: 999px; color: var(--muted);
+    background: var(--card);
+  }
+  .badge b { color: var(--accent); font-weight: 600; }
+
+  nav.toc {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav.toc .wrap { display: flex; gap: 1.35rem; overflow-x: auto; padding-top: .7rem; padding-bottom: .7rem; }
+  nav.toc a {
+    font-family: var(--mono); font-size: .78rem; white-space: nowrap;
+    color: var(--muted); text-decoration: none;
+  }
+  nav.toc a:hover { color: var(--accent); }
+
+  section { padding: 3.25rem 0 0.5rem; }
+  section:last-of-type { padding-bottom: 3rem; }
+  h2 {
+    font-size: 1.5rem; letter-spacing: -.01em; margin-bottom: 1.25rem;
+    display: flex; align-items: baseline; gap: .6rem;
+  }
+  h2 .n { font-family: var(--mono); font-size: .85rem; color: var(--accent); }
+  h3 { font-size: 1.05rem; margin: 1.4rem 0 .5rem; }
+  p { margin-bottom: 1rem; }
+  p.note { color: var(--muted); }
+  a { color: var(--accent-2); }
+  code { font-family: var(--mono); font-size: .86em; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 4px; padding: .1em .35em; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1.25rem 0; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+  }
+  .card h4 { font-size: .95rem; margin-bottom: .4rem; display: flex; align-items: center; gap: .5rem; }
+  .card h4 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+  .card.infra h4 .dot { background: var(--accent-2); }
+  .card.obs h4 .dot { background: var(--warn); }
+  .card p { font-size: .9rem; color: var(--muted); margin: 0; }
+
+  ul.checks { list-style: none; margin: 1rem 0 1.5rem; }
+  ul.checks li { padding: .45rem 0 .45rem 1.8rem; position: relative; }
+  ul.checks li::before {
+    content: "✓"; position: absolute; left: .2rem; top: .45rem;
+    color: var(--accent); font-weight: 700;
+  }
+  ul.checks li b { color: var(--text); }
+  ul.checks li.tradeoff::before { content: "△"; color: var(--warn); }
+
+  .flow {
+    font-family: var(--mono); font-size: .8rem; line-height: 1.9;
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.1rem 1.3rem; overflow-x: auto; white-space: pre; margin: 1.25rem 0;
+    color: var(--muted);
+  }
+  .flow b { color: var(--accent); font-weight: 600; }
+
+  .incident {
+    border-left: 3px solid var(--warn); background: var(--card);
+    border-radius: 0 10px 10px 0; padding: 1.1rem 1.3rem; margin: 1rem 0;
+  }
+  .incident h4 { font-size: .98rem; margin-bottom: .45rem; }
+  .incident p { font-size: .92rem; color: var(--muted); margin-bottom: .5rem; }
+  .incident p:last-child { margin-bottom: 0; }
+  .incident .lesson { color: var(--text); }
+  .incident .lesson::before { content: "Lesson — "; color: var(--warn); font-weight: 600; }
+
+  .tablebox { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; margin: 1.25rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 540px; font-size: .9rem; }
+  th, td { text-align: left; padding: .65rem 1rem; border-bottom: 1px solid var(--border); }
+  th { font-family: var(--mono); font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: var(--bg-alt); }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--muted); white-space: nowrap; }
+
+  .roadmap li { margin: .4rem 0 .4rem 1.2rem; color: var(--muted); }
+  .roadmap li b { color: var(--text); }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 2rem 0 3rem;
+    color: var(--muted); font-size: .85rem;
+  }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Self-hosted · Security-first · Raspberry Pi 5</div>
+    <h1>Pi 5 Homelab</h1>
+    <p class="lede">A self-hosted homelab built as a personal infrastructure &amp; security project.
+    Every service lives behind a private WireGuard mesh — <strong>zero public attack surface</strong> —
+    with defense in depth, container hardening, and full observability underneath.</p>
+    <div class="badges">
+      <span class="badge"><b>0</b> open inbound ports</span>
+      <span class="badge"><b>12+</b> services</span>
+      <span class="badge">WireGuard mesh (Tailscale)</span>
+      <span class="badge">Docker · segmented networks</span>
+      <span class="badge">Prometheus · Grafana · Loki</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#network">Network &amp; Access</a>
+    <a href="#services">Services</a>
+    <a href="#security">Security Posture</a>
+    <a href="#incidents">Incidents &amp; Lessons</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#stack">Stack</a>
+  </div>
+</nav>
+
+<section id="network">
+  <div class="wrap">
+    <h2><span class="n">01</span> Network &amp; access model</h2>
+    <p>Nothing on this box is reachable from the open internet. Access flows through layers that are
+    each scoped independently, so no single misconfiguration exposes a service:</p>
+    <div class="flow">client device
+   │  per-device WireGuard key (Tailscale mesh — no router port forwarding)
+   ▼
+<b>Tailscale Serve</b> — HTTPS termination on the tailnet interface only
+   │  reverse-proxies to services bound to 127.0.0.1
+   ▼
+<b>UFW host firewall</b> — each Docker subnet allow-listed per port, independently of the VPN
+   │
+   ▼
+<b>segmented Docker bridge networks</b> — monitoring / proxy-facing / app networks kept isolated</div>
+    <ul class="checks">
+      <li><b>VPN-only ingress.</b> A WireGuard mesh with per-device key authentication is the sole way in; no ports are forwarded on the router.</li>
+      <li><b>Loopback binding.</b> Services listen on <code>127.0.0.1</code> and are only exposed via the tailnet-facing reverse proxy — nothing binds a public wildcard address.</li>
+      <li><b>Firewall as a second, independent layer.</b> Each internal Docker subnet is explicitly allow-listed for only the specific ports it needs. The VPN failing open would still not expose services.</li>
+      <li><b>Network segmentation.</b> Services are split across isolated bridge networks instead of one flat network, limiting lateral movement between unrelated services.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="services">
+  <div class="wrap">
+    <h2><span class="n">02</span> Services</h2>
+    <div class="grid">
+      <div class="card infra"><h4><span class="dot"></span>Pi-hole</h4><p>Network-wide DNS ad &amp; tracker blocking.</p></div>
+      <div class="card infra"><h4><span class="dot"></span>WUD (What's Up Docker)</h4><p>Tracks &amp; applies container image updates — stateful services explicitly opted out after a real incident.</p></div>
+      <div class="card"><h4><span class="dot"></span>Vaultwarden</h4><p>Self-hosted, Bitwarden-compatible password manager.</p></div>
+      <div class="card"><h4><span class="dot"></span>Paperless-ngx</h4><p>Document management &amp; archival with Greek + English OCR, backed by Postgres and Redis.</p></div>
+      <div class="card"><h4><span class="dot"></span>Home Assistant</h4><p>Smart-home hub using host networking for LAN device discovery.</p></div>
+      <div class="card"><h4><span class="dot"></span>Immich</h4><p>Self-hosted photo/video library (offline pending dedicated NAS-backed storage).</p></div>
+      <div class="card obs"><h4><span class="dot"></span>Prometheus</h4><p>Central metrics store scraping every service in the stack.</p></div>
+      <div class="card obs"><h4><span class="dot"></span>Grafana</h4><p>Dashboards for host metrics, per-container usage, logs, DNS and smart-home stats — embedded live in the front end.</p></div>
+      <div class="card obs"><h4><span class="dot"></span>Alertmanager + ntfy</h4><p>Alerts routed to push notifications — nobody has to stare at a dashboard.</p></div>
+      <div class="card obs"><h4><span class="dot"></span>Loki + Promtail</h4><p>Centralized log aggregation across all containers.</p></div>
+      <div class="card obs"><h4><span class="dot"></span>Exporters</h4><p>node-exporter, cAdvisor, blackbox-exporter, pihole-exporter — host, container, endpoint and DNS metrics.</p></div>
+      <div class="card infra"><h4><span class="dot"></span>Homepage</h4><p>Single-pane-of-glass dashboard with live Grafana panels and native service widgets.</p></div>
+    </div>
+    <p class="note">Hardware: Raspberry Pi 5 in an Argon case. Root storage is migrating from SD card to NVMe (WD Black SN770) to remove SD wear and I/O contention as a reliability bottleneck.</p>
+  </div>
+</section>
+
+<section id="security">
+  <div class="wrap">
+    <h2><span class="n">03</span> Security posture</h2>
+    <ul class="checks">
+      <li><b>Zero public attack surface</b> — every service sits behind the mesh VPN; nothing is reachable from the open internet.</li>
+      <li><b>Defense in depth</b> — the firewall layer is scoped independently of the VPN, so a misconfigured container can't accidentally widen its audience.</li>
+      <li><b>Least privilege on containers</b> — <code>cap_drop: ALL</code> with narrow, explicit <code>cap_add</code> only where genuinely needed; <code>no-new-privileges</code> everywhere; non-root UID/GID mapping and read-only root filesystems where the image supports it.</li>
+      <li><b>Secrets out of configs and version control</b> — credentials injected via environment files or mounted read-only secret files (e.g. scrape jobs authenticate via <code>bearer_token_file</code>, never a token in a checked-in config).</li>
+      <li><b>Supply-chain-aware automation</b> — automatic image updates are useful but not blind: every stateful, data-bearing service is excluded from auto-following tags, so patch automation can't silently corrupt a database.</li>
+      <li class="tradeoff"><b>One documented, conscious exception</b> — cAdvisor still runs privileged rather than with a minimal capability set. Deliberately deferred, not overlooked: it needs deep host/cgroup introspection, and a wrong minimal capability set fails <em>silently</em> (metrics quietly stop), which is worse than the current known trade-off.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="incidents">
+  <div class="wrap">
+    <h2><span class="n">04</span> Incidents &amp; lessons learned</h2>
+    <p class="note">Real problems hit and fixed during the build — kept because the debugging process is more informative than a clean success story.</p>
+
+    <div class="incident">
+      <h4>1 · An auto-updater silently corrupted a brand-new deployment</h4>
+      <p>While standing up Paperless-ngx, the update tracker — which watches Docker's live event stream, not just a schedule — grabbed the Postgres and Redis containers within seconds of creation and pushed them to tags it misjudged as "newer": a pre-release database beta and a legacy-architecture cache build. Root cause: tag comparators can't reliably tell a stable release from a beta/RC/legacy tag across every image's own versioning convention.</p>
+      <p class="lesson">Any new stateful service gets an explicit auto-update opt-out label <em>before</em> its first deploy, not after.</p>
+    </div>
+
+    <div class="incident">
+      <h4>2 · A reverse-proxied service returning 400s was three unrelated bugs stacked together</h4>
+      <p>Diagnosis peeled back in order: (a) the app didn't trust its reverse proxy's forwarded headers; (b) fixing that exposed a silent Bluetooth-integration retry loop quietly preventing the web server from restarting, with no visible crash; (c) a genuine port collision between the VPN's own listener and the app's wildcard bind. Each fix revealed the next problem.</p>
+      <p class="lesson">Don't declare victory after the first plausible-looking fix.</p>
+    </div>
+
+    <div class="incident">
+      <h4>3 · Cross-service metrics scraping failed with no application-level error at all</h4>
+      <p>Scrape requests timed out intermittently while app config, DNS, and container health all looked fine. The actual cause was the host firewall: one Docker subnet had been allow-listed to reach the target port, but a second subnet that needed the same access was simply missed when the rule was written.</p>
+      <p class="lesson">"Works from container A but not container B" almost always means the network/firewall layer, not the app.</p>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <h2><span class="n">05</span> Current gaps &amp; roadmap</h2>
+    <ul class="roadmap">
+      <li><b>Backups</b> — the single biggest reliability gap. Plan: Kopia against a NAS once online — deliberately <em>not</em> a laptop, since a sleep-prone device is an unreliable backup target in practice.</li>
+      <li><b>Storage migration</b> — moving the root filesystem and volumes off the SD card onto NVMe.</li>
+      <li><b>Home Assistant</b> — onboarding done; connecting the first smart device and finishing API integration into the monitoring stack.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="wrap">
+    <h2><span class="n">06</span> Stack summary</h2>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Layer</th><th>Tools</th></tr></thead>
+        <tbody>
+          <tr><td>Access / networking</td><td>Tailscale (WireGuard), Tailscale Serve, UFW</td></tr>
+          <tr><td>Dashboard / front end</td><td>Homepage (gethomepage)</td></tr>
+          <tr><td>Metrics</td><td>Prometheus, node-exporter, cAdvisor, blackbox-exporter, pihole-exporter</td></tr>
+          <tr><td>Dashboards / alerting</td><td>Grafana, Alertmanager, ntfy</td></tr>
+          <tr><td>Logging</td><td>Loki, Promtail</td></tr>
+          <tr><td>DNS</td><td>Pi-hole</td></tr>
+          <tr><td>Passwords</td><td>Vaultwarden</td></tr>
+          <tr><td>Documents</td><td>Paperless-ngx (Postgres, Redis)</td></tr>
+          <tr><td>Smart home</td><td>Home Assistant</td></tr>
+          <tr><td>Photos</td><td>Immich</td></tr>
+          <tr><td>Update management</td><td>WUD (What's Up Docker)</td></tr>
+          <tr><td>Container runtime</td><td>Docker Compose with per-service hardening</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Pi 5 Homelab — a personal infrastructure &amp; security project</span>
+    <span><a href="https://github.com/DimPourn/sh_lab">github.com/DimPourn/sh_lab</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
