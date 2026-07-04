@@ -200,7 +200,32 @@
   footer { border-top: 1px solid var(--border); padding: 2.2rem 0 3.2rem; color: var(--muted); font-size: .78rem; background: var(--bg-glass); backdrop-filter: blur(8px); }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
 
+  /* ── cinematic photo scene bands ─────────── */
+  .scene { position: relative; height: 64vh; min-height: 380px; overflow: hidden; margin: 1rem 0; border-block: 1px solid var(--border); }
+  .scene-img { position: absolute; inset: -12% 0; will-change: transform; }
+  .scene-img::before {
+    content: ""; position: absolute; inset: 0; background: var(--img) center/cover no-repeat;
+    transform: scale(1.06); animation: kenburns 24s ease-in-out infinite alternate;
+  }
+  @keyframes kenburns { from { transform: scale(1.06) translate(0,0); } to { transform: scale(1.2) translate(-2%, -2%); } }
+  .scene-tint {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, var(--bg) 0%, transparent 22%, transparent 72%, var(--bg) 100%),
+      linear-gradient(90deg, rgba(4,6,10,.86) 0%, rgba(4,6,10,.35) 55%, rgba(0,255,156,.06) 100%);
+  }
+  .scene-grid { position: absolute; inset: 0; opacity: .35; background-image: linear-gradient(rgba(0,255,156,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,156,.05) 1px, transparent 1px); background-size: 42px 42px; }
+  .scene-cap { position: absolute; left: 0; right: 0; bottom: 0; }
+  .scene-cap .wrap { padding-block: 2rem; }
+  .scene-cap .tag { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); text-shadow: 0 0 12px rgba(0,255,156,.6); }
+  .scene-cap h3 { font-family: var(--disp); font-size: clamp(1.5rem, 4vw, 2.4rem); color: #eef5fb; margin: .35rem 0 .3rem; letter-spacing: -.01em; }
+  .scene-cap p { font-size: .9rem; color: #b9c8d6; max-width: 34em; margin: 0; }
+  .scene-cap .inner { opacity: 0; transform: translateY(22px); transition: opacity .8s ease, transform .8s ease; }
+  .scene.on .scene-cap .inner { opacity: 1; transform: none; }
+
   @media (prefers-reduced-motion: reduce) {
+    .scene-img::before { animation: none; transform: scale(1.06); }
+    .scene-cap .inner { opacity: 1; transform: none; transition: none; }
     .reveal { opacity: 1; transform: none; transition: none; }
     .prompt .cursor, .scrollhint { animation: none; }
     html { scroll-behavior: auto; }
@@ -242,6 +267,17 @@
   </div>
 </nav>
 
+<div class="scene" style="--img:url(assets/img/pi.jpg)">
+  <div class="scene-img"></div>
+  <div class="scene-tint"></div>
+  <div class="scene-grid"></div>
+  <div class="scene-cap"><div class="wrap"><div class="inner">
+    <span class="tag">// the hardware</span>
+    <h3>One board. The whole lab.</h3>
+    <p>A single Raspberry Pi 5 runs every service below — containerized, hardened, and reachable only across a private mesh.</p>
+  </div></div></div>
+</div>
+
 <section id="network">
   <div class="wrap reveal">
     <h2><span class="n">[01]</span> Network &amp; access model</h2>
@@ -265,6 +301,17 @@
     </ul>
   </div>
 </section>
+
+<div class="scene" style="--img:url(assets/img/rack.jpg)">
+  <div class="scene-img"></div>
+  <div class="scene-tint"></div>
+  <div class="scene-grid"></div>
+  <div class="scene-cap"><div class="wrap"><div class="inner">
+    <span class="tag">// segmentation</span>
+    <h3>Isolated networks, not one flat wire</h3>
+    <p>Services are split across separate Docker bridge networks with a UFW layer on top — so a single compromised container can't roam the rest.</p>
+  </div></div></div>
+</div>
 
 <section id="services">
   <div class="wrap reveal">
@@ -300,6 +347,17 @@
     </ul>
   </div>
 </section>
+
+<div class="scene" style="--img:url(assets/img/circuit.jpg)">
+  <div class="scene-img"></div>
+  <div class="scene-tint"></div>
+  <div class="scene-grid"></div>
+  <div class="scene-cap"><div class="wrap"><div class="inner">
+    <span class="tag">// under the hood</span>
+    <h3>Where the interesting failures live</h3>
+    <p>Every layer that can break has broken at least once. The debugging is documented below — it's the part worth reading.</p>
+  </div></div></div>
+</div>
 
 <section id="incidents">
   <div class="wrap reveal">
@@ -379,6 +437,23 @@
   }, { threshold: 0.12 });
   document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
 
+  /* photo scenes: reveal caption + parallax drift on the image */
+  var scenes = [].slice.call(document.querySelectorAll(".scene"));
+  var sio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add("on"); });
+  }, { threshold: 0.25 });
+  scenes.forEach(function (s) { sio.observe(s); });
+  function parallax() {
+    var vh = window.innerHeight;
+    scenes.forEach(function (s) {
+      var r = s.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) return;
+      var img = s.querySelector(".scene-img");
+      var p = (r.top + r.height / 2 - vh / 2) / vh;   /* -1..1 */
+      img.style.transform = "translateY(" + (p * 14) + "%)";
+    });
+  }
+
   /* animated particle-network background, hue-shifts with scroll */
   var canvas = document.getElementById("net");
   var ctx = canvas.getContext("2d");
@@ -425,6 +500,7 @@
     var max = document.documentElement.scrollHeight - window.innerHeight;
     scrollT = max > 0 ? window.scrollY / max : 0;
     driftY = window.scrollY * 0.06;
+    parallax();
   }
 
   var LINK = 130;
