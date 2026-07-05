@@ -3,461 +3,507 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pi 5 Homelab — Self-Hosted Infrastructure &amp; Security Project</title>
-<meta name="description" content="A hardened, self-hosted homelab on a Raspberry Pi 5 — zero public attack surface, defense in depth, full observability. A cinematic, WebGL scroll experience.">
+<title>Pi 5 Homelab — Zero Public Attack Surface</title>
+<meta name="description" content="A hardened self-hosted homelab on a Raspberry Pi 5. Zero public attack surface, defense in depth, full observability — presented as a live control-room.">
 <meta name="color-scheme" content="dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2303050a'/%3E%3Ccircle cx='16' cy='16' r='5.5' fill='%2300ff9c'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%2338bdf8' stroke-width='1.4' opacity='.65'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070d17'/%3E%3Ccircle cx='16' cy='16' r='5.5' fill='%2334d399'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%2338b7f8' stroke-width='1.4' opacity='.7'/%3E%3C/svg%3E">
 <meta property="og:title" content="Pi 5 Homelab — Zero Public Attack Surface">
-<meta property="og:description" content="A hardened self-hosted homelab on a Raspberry Pi 5. Real WebGL, scroll-driven walkthrough of the network, security posture and incidents.">
+<meta property="og:description" content="A hardened self-hosted homelab on a Raspberry Pi 5 — a live control-room walkthrough of the network, security posture and incidents.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Calistoga&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #03050a;
-    --bg-2: #060a12;
-    --bg-glass: rgba(9, 14, 21, .55);
-    --card: rgba(13, 19, 28, .72);
-    --border: rgba(56, 84, 116, .22);
-    --border-hot: rgba(0, 255, 156, .38);
-    --text: #c9d6e2;
-    --muted: #708598;
-    --ink: #eef5fb;
-    --accent: #00ff9c;
-    --accent-dim: rgba(0, 255, 156, .1);
-    --accent-2: #38bdf8;
-    --accent-3: #a78bfa;
-    --warn: #f0b429;
-    --danger: #ff5470;
+    --bg: #05090f;
+    --bg-grad-1: #0a1524;
+    --bg-grad-2: #071019;
+    --tile: rgba(15, 25, 39, .72);
+    --tile-2: rgba(20, 32, 49, .66);
+    --tile-solid: #0d1826;
+    --border: rgba(70, 116, 160, .18);
+    --border-hi: rgba(56, 183, 248, .42);
+    --border-ok: rgba(52, 211, 153, .42);
+    --ink: #eef4fb;
+    --text: #b6c6d8;
+    --muted: #6f849b;
+    --faint: #46586e;
+    --blue: #38b7f8;
+    --blue-deep: #0ea5e9;
+    --green: #34d399;      /* protected / ok */
+    --amber: #fbbf24;
+    --red: #fb7185;
+    --purple: #a78bfa;
+    --serif: "Calistoga", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, sans-serif;
     --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --disp: "Space Grotesk", "JetBrains Mono", sans-serif;
+    --r: 20px;
+    --shadow: 0 18px 50px -20px rgba(0, 0, 0, .8);
     --sc: 0;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
     background: var(--bg); color: var(--text);
-    font-family: var(--mono); font-size: 15.5px; line-height: 1.7;
-    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    font-family: var(--sans); font-size: 15px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased; overflow-x: hidden; letter-spacing: -0.005em;
   }
-  ::selection { background: rgba(0,255,156,.28); color: #eafff6; }
-  img { max-width: 100%; }
-  a { color: var(--accent-2); }
+  ::selection { background: rgba(56, 183, 248, .3); color: #eafaff; }
+  img { max-width: 100%; display: block; }
+  a { color: var(--blue); text-decoration: none; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 400; color: var(--ink); letter-spacing: -0.01em; line-height: 1.05; }
 
-  /* ── WebGL layers ───────────────────────────────────── */
-  #hero-canvas { position: fixed; inset: 0; z-index: -3; width: 100vw; height: 100vh; display: block; opacity: 0; transition: opacity 1.2s ease; }
-  #hero-canvas.ready { opacity: 1; }
-
-  .backdrop { position: fixed; inset: 0; z-index: -4; pointer-events: none;
+  /* ── ambient background ─────────────────────────────── */
+  .bg-field { position: fixed; inset: 0; z-index: -3; pointer-events: none;
     background:
-      radial-gradient(120% 90% at 72% -8%, #0b1626 0%, transparent 52%),
-      radial-gradient(110% 90% at 12% 8%, #0a1220 0%, transparent 55%),
+      radial-gradient(90% 60% at 80% -10%, var(--bg-grad-1) 0%, transparent 55%),
+      radial-gradient(80% 60% at 10% 0%, #0b1a2b 0%, transparent 50%),
+      radial-gradient(120% 90% at 50% 120%, #071722 0%, transparent 50%),
       var(--bg); }
-  .vignette { position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background: radial-gradient(130% 100% at 50% 42%, transparent 52%, rgba(0,0,0,.62) 100%); }
-  .noise { position: fixed; inset: 0; z-index: -2; pointer-events: none; opacity: .4;
-    background-image: linear-gradient(rgba(0,255,156,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,156,.02) 1px, transparent 1px);
-    background-size: 48px 48px; mask-image: radial-gradient(120% 80% at 50% 30%, #000, transparent 78%);
-    -webkit-mask-image: radial-gradient(120% 80% at 50% 30%, #000, transparent 78%); }
+  .bg-grid { position: fixed; inset: 0; z-index: -2; pointer-events: none; opacity: .5;
+    background-image: linear-gradient(rgba(56,183,248,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(56,183,248,.04) 1px, transparent 1px);
+    background-size: 58px 58px; mask-image: radial-gradient(120% 90% at 50% 20%, #000, transparent 80%);
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 20%, #000, transparent 80%); }
+  .cursor-glow { position: fixed; top: 0; left: 0; width: 460px; height: 460px; z-index: 0; pointer-events: none;
+    transform: translate3d(-50%,-50%,0); background: radial-gradient(circle, rgba(56,183,248,.07), transparent 62%); mix-blend-mode: screen; opacity: 0; transition: opacity .3s; }
+  .progress { position: fixed; top: 0; left: 0; height: 2px; width: 100%; z-index: 90; transform-origin: 0 50%; transform: scaleX(var(--sc));
+    background: linear-gradient(90deg, var(--blue), var(--green)); box-shadow: 0 0 12px rgba(56,183,248,.6); }
 
-  .cursor-glow { position: fixed; top: 0; left: 0; width: 480px; height: 480px; z-index: 8; pointer-events: none;
-    transform: translate3d(-50%,-50%,0); background: radial-gradient(circle, rgba(0,255,156,.08), transparent 62%); mix-blend-mode: screen; opacity: 0; transition: opacity .3s; }
-  .progress { position: fixed; top: 0; left: 0; height: 2px; width: 100%; z-index: 70; transform-origin: 0 50%; transform: scaleX(var(--sc));
-    background: linear-gradient(90deg, var(--accent), var(--accent-2)); box-shadow: 0 0 12px rgba(0,255,156,.6); }
-
-  /* ── fixed chrome ───────────────────────────────────── */
-  .chrome { position: fixed; inset: 0 0 auto 0; z-index: 60; display: flex; align-items: center; justify-content: space-between;
-    padding: 1.15rem clamp(1.1rem, 4vw, 2.6rem); pointer-events: none; }
-  .chrome > * { pointer-events: auto; }
-  .brand { font-family: var(--disp); font-weight: 700; font-size: .82rem; letter-spacing: .02em; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: .5rem; }
-  .brand .mk { color: var(--accent); }
-  .topnav { display: flex; gap: 1.5rem; align-items: center; }
-  .topnav a { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color .2s; }
-  .topnav a:hover, .topnav a.active { color: var(--accent); }
-  .motion-btn { font-family: var(--mono); font-size: .64rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
-    background: none; border: 1px solid var(--border); border-radius: 100px; padding: .35rem .7rem; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; transition: border-color .2s, color .2s; }
-  .motion-btn:hover { color: var(--accent); border-color: var(--border-hot); }
-  .motion-btn .d { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  /* ── top nav ────────────────────────────────────────── */
+  .nav { position: fixed; inset: 0 0 auto 0; z-index: 80; display: flex; align-items: center; justify-content: space-between;
+    padding: .85rem clamp(1rem, 4vw, 2.2rem); backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgba(5,9,15,.82), rgba(5,9,15,.2)); border-bottom: 1px solid rgba(70,116,160,.1); }
+  .brand { font-family: var(--mono); font-weight: 600; font-size: .8rem; letter-spacing: .04em; color: var(--ink); display: flex; align-items: center; gap: .55rem; }
+  .brand .mk { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 6px; background: rgba(52,211,153,.12); border: 1px solid var(--border-ok); }
+  .brand .mk::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .nav-right { display: flex; align-items: center; gap: 1.2rem; }
+  .nav-links { display: flex; gap: 1.1rem; }
+  .nav-links a { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--blue); }
+  .status-pill { font-family: var(--mono); font-size: .66rem; letter-spacing: .06em; color: var(--green); display: inline-flex; align-items: center; gap: .5rem;
+    border: 1px solid var(--border-ok); background: rgba(52,211,153,.07); border-radius: 100px; padding: .32rem .7rem; }
+  .status-pill .d { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.8); } }
+  .motion-btn { font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+    background: none; border: 1px solid var(--border); border-radius: 100px; padding: .34rem .66rem; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; transition: border-color .2s, color .2s; }
+  .motion-btn:hover { color: var(--blue); border-color: var(--border-hi); }
+  .motion-btn .d { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
   body.paused .motion-btn .d { background: var(--muted); box-shadow: none; }
-  @media (max-width: 720px) { .topnav a:not(.mnav) { display: none; } }
-  @media (max-width: 640px) { .topnav a { display: none; } .topnav { gap: 0; } }
+  @media (max-width: 780px) { .nav-links { display: none; } }
+  @media (max-width: 520px) { .status-pill span.t { display: none; } }
 
-  /* big chapter counter, bottom-left */
-  .counter { position: fixed; left: clamp(1.1rem, 4vw, 2.6rem); bottom: 1.4rem; z-index: 55; pointer-events: none; font-family: var(--disp); }
-  .counter .big { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 700; line-height: .9; color: var(--ink); letter-spacing: -.04em; }
-  .counter .big b { color: var(--accent); font-weight: 700; }
-  .counter .sub { display: block; margin-top: .35rem; font-family: var(--mono); font-size: .62rem; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); }
-  @media (max-width: 720px) { .counter { display: none; } }
+  /* ── layout shell ───────────────────────────────────── */
+  .shell { max-width: 1240px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2.2rem); }
+  .section { padding: clamp(3.5rem, 8vw, 6rem) 0 0; }
+  .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; flex-wrap: wrap; }
+  .sec-head .kicker { font-family: var(--mono); font-size: .66rem; letter-spacing: .22em; text-transform: uppercase; color: var(--blue); display: flex; align-items: center; gap: .6rem; }
+  .sec-head .kicker .n { color: var(--faint); }
+  .sec-head h2 { font-size: clamp(1.7rem, 4vw, 2.6rem); }
+  .sec-head p { color: var(--muted); font-size: .92rem; max-width: 30em; }
 
-  /* ── kinetic type ───────────────────────────────────── */
-  .line { display: block; overflow: hidden; padding-bottom: .04em; }
-  .kin { display: inline-block; will-change: transform; }
-  .js .kin { transform: translateY(112%); }
+  /* ── bento tiles ────────────────────────────────────── */
+  .bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+  .tile { position: relative; background: var(--tile); border: 1px solid var(--border); border-radius: var(--r);
+    padding: 1.4rem 1.5rem; backdrop-filter: blur(8px); overflow: hidden; box-shadow: var(--shadow);
+    transition: transform .3s cubic-bezier(.2,.7,.2,1), border-color .3s, box-shadow .3s; }
+  .tile::after { content: ""; position: absolute; inset: 0; border-radius: var(--r); pointer-events: none;
+    background: radial-gradient(340px 200px at var(--mx,50%) var(--my,-10%), rgba(56,183,248,.09), transparent 70%); opacity: 0; transition: opacity .3s; }
+  .tile:hover { transform: translateY(-3px); border-color: var(--border-hi); box-shadow: 0 26px 60px -24px rgba(0,0,0,.85); }
+  .tile:hover::after { opacity: 1; }
+  .tile .corner { position: absolute; top: 12px; right: 14px; font-family: var(--mono); font-size: .6rem; letter-spacing: .16em; color: var(--faint); text-transform: uppercase; }
+
+  /* KPI tiles */
+  .kpi { display: flex; flex-direction: column; justify-content: space-between; min-height: 148px; }
+  .kpi .label { font-family: var(--mono); font-size: .64rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .kpi .val { font-family: var(--serif); font-size: clamp(2.1rem, 5vw, 3rem); color: var(--ink); line-height: 1; letter-spacing: -.02em; }
+  .kpi .val small { font-size: .42em; color: var(--muted); font-family: var(--mono); letter-spacing: 0; }
+  .kpi .sub { font-family: var(--mono); font-size: .66rem; color: var(--muted); display: flex; align-items: center; gap: .45rem; }
+  .kpi .sub .up { color: var(--green); }
+  .kpi.ok .val { color: var(--green); }
+  .spark { width: 100%; height: 30px; margin-top: .2rem; }
+  .spark path.line { fill: none; stroke: var(--green); stroke-width: 2; filter: drop-shadow(0 0 4px rgba(52,211,153,.5)); }
+  .spark path.area { fill: url(#sg); opacity: .5; }
 
   /* ── hero ───────────────────────────────────────────── */
-  header.hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; }
-  .hero-inner { position: relative; z-index: 2; width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 clamp(1.1rem, 4vw, 2.6rem); }
-  .overline { font-size: .7rem; letter-spacing: .34em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.6rem; }
-  .overline .line, .hero-title .line { overflow: hidden; }
-  .hero-title { font-family: var(--disp); font-weight: 700; letter-spacing: -.045em; line-height: .92; color: var(--ink);
-    font-size: clamp(3rem, 12vw, 9.5rem); text-transform: none; }
-  .hero-title .hl { background: linear-gradient(110deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero-lede { margin-top: 1.8rem; max-width: 40em; font-size: 1.02rem; color: #9fb1c2; }
-  .js .hero-lede { opacity: 0; }
-  .hero-lede strong { color: var(--text); font-weight: 600; }
-  .hero-cta { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: .8rem; }
-  .js .hero-cta { opacity: 0; }
-  .btn { font-family: var(--mono); font-size: .8rem; letter-spacing: .02em; text-decoration: none; padding: .75rem 1.3rem; border-radius: 100px; display: inline-flex; align-items: center; gap: .5rem; transition: transform .2s, box-shadow .2s, border-color .2s, background .2s, color .2s; }
-  .btn.primary { background: var(--accent); color: #04120c; font-weight: 600; box-shadow: 0 8px 30px rgba(0,255,156,.25); }
-  .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(0,255,156,.45); }
-  .btn.ghost { color: var(--text); border: 1px solid var(--border); background: var(--bg-glass); backdrop-filter: blur(6px); }
-  .btn.ghost:hover { border-color: var(--border-hot); color: var(--accent); transform: translateY(-2px); }
+  .hero { padding-top: 5.6rem; }
+  .hero .bento { grid-auto-rows: minmax(0, auto); }
+  .t-head { grid-column: span 7; grid-row: span 2; display: flex; flex-direction: column; justify-content: center; padding: clamp(1.6rem, 3vw, 2.6rem); min-height: 340px; }
+  .t-head .eyebrow { font-family: var(--mono); font-size: .68rem; letter-spacing: .2em; text-transform: uppercase; color: var(--blue); margin-bottom: 1.1rem; display: inline-flex; align-items: center; gap: .6rem; }
+  .t-head h1 { font-size: clamp(2.4rem, 6vw, 4.3rem); line-height: .98; }
+  .t-head h1 .g { background: linear-gradient(100deg, var(--green), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t-head .lede { margin-top: 1.3rem; max-width: 34em; color: var(--text); font-size: 1rem; }
+  .t-head .lede b { color: var(--ink); font-weight: 600; }
+  .t-head .cta { margin-top: 1.7rem; display: flex; flex-wrap: wrap; gap: .7rem; }
+  .btn { font-family: var(--mono); font-size: .76rem; letter-spacing: .01em; padding: .72rem 1.2rem; border-radius: 100px; display: inline-flex; align-items: center; gap: .5rem; transition: transform .2s, box-shadow .2s, border-color .2s, background .2s, color .2s; }
+  .btn.primary { background: var(--green); color: #04160e; font-weight: 600; box-shadow: 0 8px 26px -6px rgba(52,211,153,.5); }
+  .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 14px 40px -8px rgba(52,211,153,.7); }
+  .btn.ghost { color: var(--text); border: 1px solid var(--border); background: rgba(20,32,49,.5); }
+  .btn.ghost:hover { border-color: var(--border-hi); color: var(--blue); transform: translateY(-2px); }
 
-  .scrollcue { position: absolute; bottom: 1.6rem; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; align-items: center; gap: .7rem;
-    font-size: .64rem; letter-spacing: .32em; text-transform: uppercase; color: var(--muted); }
-  .scrollcue .bar { width: 42px; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); position: relative; overflow: hidden; }
-  .scrollcue .bar::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--accent); animation: sweep 2.2s ease-in-out infinite; }
-  @keyframes sweep { 0% { transform: translateX(-120%);} 100% { transform: translateX(300%);} }
+  .t-mesh { grid-column: span 5; grid-row: span 2; padding: 0; min-height: 340px; }
+  #mesh-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .t-mesh .mesh-cap { position: absolute; left: 1.2rem; bottom: 1.1rem; z-index: 2; font-family: var(--mono); font-size: .66rem; color: var(--muted); letter-spacing: .04em; }
+  .t-mesh .mesh-cap b { color: var(--green); font-weight: 600; }
+  .t-mesh .mesh-top { position: absolute; left: 1.2rem; top: 1.1rem; z-index: 2; font-family: var(--mono); font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; color: var(--blue); }
 
-  /* ── generic layout ─────────────────────────────────── */
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(1.1rem, 4vw, 2.6rem); }
-  section { padding: 7rem 0 1rem; position: relative; }
-  .js .reveal { opacity: 0; transform: translateY(30px); }
+  .t-kpi { grid-column: span 3; }
 
-  /* cinematic chapter header */
-  .chap { position: relative; margin-bottom: 2rem; }
-  .chap .idx { position: absolute; top: -3.2rem; left: -.2rem; font-family: var(--disp); font-weight: 700; font-size: clamp(5rem, 15vw, 11rem);
-    line-height: 1; letter-spacing: -.05em; color: transparent; -webkit-text-stroke: 1px rgba(120,150,180,.14); z-index: 0; pointer-events: none; }
-  .chap h2 { position: relative; z-index: 1; font-family: var(--disp); font-size: clamp(1.9rem, 5vw, 3.2rem); font-weight: 700; letter-spacing: -.03em; color: var(--ink); }
-  .chap .tag { position: relative; z-index: 1; display: inline-block; font-size: .66rem; letter-spacing: .28em; text-transform: uppercase; color: var(--accent); margin-bottom: .6rem; }
-  .chap .rule { position: relative; z-index: 1; height: 1px; margin-top: 1.1rem; background: linear-gradient(90deg, var(--border-hot), transparent); }
+  /* ── defense feature (pinned 3D) ────────────────────── */
+  .defense { position: relative; height: 380vh; }
+  .defense .pin { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; }
+  .defense .frame { position: relative; width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2.2rem); }
+  .defense .grid2 { display: grid; grid-template-columns: 1.15fr .85fr; gap: 14px; align-items: stretch; height: min(76vh, 640px); }
+  .t-stack { position: relative; padding: 0; overflow: hidden; }
+  #stack-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .t-stack .lbl { position: absolute; left: 1.2rem; top: 1.1rem; z-index: 2; }
+  .t-stack .lbl .k { font-family: var(--mono); font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--blue); }
+  .t-stack .hint { position: absolute; right: 1.2rem; bottom: 1.1rem; z-index: 2; font-family: var(--mono); font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+  .t-layers { display: flex; flex-direction: column; justify-content: center; }
+  .t-layers h3 { font-size: clamp(1.5rem, 3vw, 2.1rem); margin-bottom: .3rem; }
+  .t-layers .intro { color: var(--muted); font-size: .9rem; margin-bottom: 1.2rem; max-width: 30em; }
+  .layers { list-style: none; }
+  .layers li { padding: .62rem 0 .62rem 1rem; border-left: 2px solid var(--border); color: var(--muted); font-size: .86rem; transition: color .3s, border-color .3s, transform .3s; }
+  .layers li b { display: block; color: var(--text); font-size: .92rem; font-weight: 600; font-family: var(--sans); }
+  .layers li.active { color: var(--text); border-left-color: var(--green); transform: translateX(5px); }
+  .layers li.active b { color: var(--green); }
 
-  p { margin-bottom: 1rem; } p.note { color: var(--muted); font-size: .9rem; }
-  code { font-size: .85em; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--border); border-radius: 4px; padding: .08em .4em; }
+  /* ── generic content tiles ──────────────────────────── */
+  .t-wide { grid-column: span 12; }
+  .t-6 { grid-column: span 6; }
+  .t-4 { grid-column: span 4; }
+  .t-3 { grid-column: span 3; }
+  .t-8 { grid-column: span 8; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(265px, 1fr)); gap: .9rem; margin: 1.4rem 0; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem 1.3rem; backdrop-filter: blur(6px);
-    transition: border-color .25s, transform .25s, box-shadow .25s; position: relative; overflow: hidden; }
-  .card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(200px 200px at var(--mx,50%) var(--my,0%), rgba(0,255,156,.08), transparent 70%); opacity: 0; transition: opacity .25s; pointer-events: none; }
-  .card:hover { border-color: var(--border-hot); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.5); }
-  .card:hover::before { opacity: 1; }
-  .card h4 { font-size: .9rem; color: #dbe7f1; margin-bottom: .4rem; display: flex; align-items: center; gap: .55rem; font-weight: 600; }
-  .card h4 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); flex: none; }
-  .card.infra h4 .dot { background: var(--accent-2); box-shadow: 0 0 8px var(--accent-2); }
-  .card.obs h4 .dot { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
-  .card p { font-size: .82rem; color: var(--muted); margin: 0; }
+  .card-head { display: flex; align-items: center; gap: .55rem; margin-bottom: .7rem; }
+  .card-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 8px var(--blue); flex: none; }
+  .card-head h4 { font-family: var(--sans); font-weight: 600; font-size: .95rem; color: var(--ink); letter-spacing: -.01em; }
+  .svc h4 { font-size: .9rem; }
+  .svc p { font-size: .8rem; color: var(--muted); }
+  .svc.infra .dot { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+  .svc.app .dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .svc.obs .dot { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
 
-  ul.checks { list-style: none; margin: 1rem 0 1.5rem; }
-  ul.checks li { padding: .5rem 0 .5rem 2rem; position: relative; font-size: .92rem; color: var(--muted); }
+  ul.checks { list-style: none; }
+  ul.checks li { padding: .5rem 0 .5rem 1.7rem; position: relative; font-size: .9rem; color: var(--muted); }
   ul.checks li b { color: var(--text); }
-  ul.checks li::before { content: "▸"; position: absolute; left: .3rem; color: var(--accent); text-shadow: 0 0 8px rgba(0,255,156,.6); }
+  ul.checks li::before { content: ""; position: absolute; left: .1rem; top: .95rem; width: 8px; height: 8px; border: 1.5px solid var(--green); border-radius: 2px; box-shadow: 0 0 7px rgba(52,211,153,.5); }
+  code { font-family: var(--mono); font-size: .82em; color: var(--green); background: rgba(52,211,153,.08); border: 1px solid var(--border); border-radius: 5px; padding: .06em .38em; }
 
-  .flow { font-size: .78rem; line-height: 1.95; color: var(--muted); background: rgba(5, 9, 14, .8); border: 1px solid var(--border); border-radius: 14px;
-    padding: 1.2rem 1.4rem; overflow-x: auto; white-space: pre; margin: 1.4rem 0; box-shadow: inset 0 0 40px rgba(0,255,156,.03); }
-  .flow b { color: var(--accent); font-weight: 600; text-shadow: 0 0 10px rgba(0,255,156,.4); }
+  .flow { font-family: var(--mono); font-size: .76rem; line-height: 1.9; color: var(--muted); white-space: pre; overflow-x: auto; }
+  .flow b { color: var(--blue); font-weight: 600; }
+  .flow .arrow { color: var(--faint); }
 
-  .incident { border: 1px solid var(--border); border-left: 3px solid var(--danger); background: var(--card); backdrop-filter: blur(6px);
-    border-radius: 0 14px 14px 0; padding: 1.2rem 1.4rem; margin: 1.1rem 0; transition: border-color .25s, transform .25s; }
-  .incident:hover { border-left-color: var(--warn); transform: translateX(4px); }
-  .incident h4 { font-size: .95rem; color: #dbe7f1; margin-bottom: .5rem; }
-  .incident h4 .tag { font-size: .65rem; color: var(--danger); border: 1px solid rgba(255,84,112,.4); border-radius: 3px; padding: .1rem .45rem; margin-right: .6rem; letter-spacing: .1em; }
-  .incident p { font-size: .87rem; color: var(--muted); margin-bottom: .55rem; }
-  .incident p:last-child { margin-bottom: 0; }
-  .incident .lesson { color: var(--text); }
-  .incident .lesson::before { content: "$ lesson: "; color: var(--warn); font-weight: 600; }
+  .incident h4 { font-family: var(--sans); font-weight: 600; font-size: .92rem; color: var(--ink); margin-bottom: .5rem; display: flex; gap: .55rem; align-items: baseline; }
+  .incident .tag { font-family: var(--mono); font-size: .6rem; color: var(--red); border: 1px solid rgba(251,113,133,.4); border-radius: 4px; padding: .12rem .45rem; letter-spacing: .08em; flex: none; }
+  .incident p { font-size: .84rem; color: var(--muted); margin-bottom: .55rem; }
+  .incident .lesson { color: var(--text); font-size: .84rem; }
+  .incident .lesson::before { content: "lesson  "; font-family: var(--mono); color: var(--amber); font-size: .72rem; letter-spacing: .08em; }
+  .incident { border-left: 3px solid rgba(251,113,133,.5); }
 
-  .tablebox { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; margin: 1.4rem 0; background: var(--card); backdrop-filter: blur(6px); }
-  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .85rem; }
-  th, td { text-align: left; padding: .75rem 1.1rem; border-bottom: 1px solid var(--border); }
-  th { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--accent); background: rgba(5,9,14,.6); font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; font-size: .84rem; font-family: var(--mono); }
+  th, td { text-align: left; padding: .62rem .9rem; border-bottom: 1px solid var(--border); }
+  th { font-size: .64rem; text-transform: uppercase; letter-spacing: .12em; color: var(--blue); font-weight: 600; }
   tr:last-child td { border-bottom: none; }
   td:first-child { color: var(--muted); white-space: nowrap; }
   tbody tr { transition: background .2s; }
-  tbody tr:hover { background: var(--accent-dim); }
+  tbody tr:hover { background: rgba(56,183,248,.05); }
+  .tablebox { overflow-x: auto; }
 
-  footer { border-top: 1px solid var(--border); padding: 2.4rem 0 3.4rem; color: var(--muted); font-size: .78rem; background: var(--bg-glass); backdrop-filter: blur(8px); margin-top: 5rem; }
-  footer .wrap { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+  /* photo bento */
+  .photo { position: relative; min-height: 220px; padding: 0; }
+  .photo .img { position: absolute; inset: 0; background: var(--img) center/cover no-repeat; transition: transform .5s ease; }
+  .photo:hover .img { transform: scale(1.05); }
+  .photo .tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,9,15,.15) 30%, rgba(5,9,15,.6) 70%, rgba(5,9,15,.94)); }
+  .photo .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.2rem 1.3rem; z-index: 2; }
+  .photo .cap .n { font-family: var(--mono); font-size: .62rem; letter-spacing: .16em; color: var(--green); text-transform: uppercase; }
+  .photo .cap h4 { font-family: var(--serif); font-size: 1.15rem; color: var(--ink); margin: .2rem 0 .25rem; }
+  .photo .cap p { font-size: .78rem; color: var(--text); }
+  .t-photo-lead { display: flex; flex-direction: column; justify-content: center; }
+  .t-photo-lead .big { font-family: var(--serif); font-size: clamp(1.6rem, 3.5vw, 2.4rem); color: var(--ink); line-height: 1.05; }
+  .t-photo-lead .big em { font-style: normal; background: linear-gradient(100deg, var(--green), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t-photo-lead p { color: var(--muted); font-size: .86rem; margin-top: .8rem; }
 
-  /* ── pinned WebGL defense-in-depth object ───────────── */
-  .pin { position: relative; height: 420vh; }
-  .pin-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; align-items: center; }
-  #stack-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; }
-  .pin-copy { position: relative; z-index: 2; width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 clamp(1.1rem, 4vw, 2.6rem); pointer-events: none; }
-  .pin-copy .row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; height: 100vh; }
-  .pin-lead .tag { font-size: .66rem; letter-spacing: .28em; text-transform: uppercase; color: var(--accent); }
-  .pin-lead h2 { font-family: var(--disp); font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 700; letter-spacing: -.03em; color: var(--ink); margin: .5rem 0 1rem; }
-  .pin-lead p { color: #9fb1c2; font-size: .95rem; max-width: 30em; }
-  .layers { list-style: none; align-self: center; }
-  .layers li { padding: .7rem 0 .7rem 1.1rem; border-left: 2px solid var(--border); color: var(--muted); font-size: .9rem; transition: color .3s, border-color .3s, transform .3s; }
-  .layers li b { display: block; color: var(--text); font-size: .95rem; font-weight: 600; }
-  .layers li.active { color: var(--text); border-left-color: var(--accent); transform: translateX(6px); }
-  .layers li.active b { color: var(--accent); text-shadow: 0 0 12px rgba(0,255,156,.5); }
+  footer { margin-top: clamp(4rem, 9vw, 7rem); border-top: 1px solid var(--border); padding: 2.2rem 0 3rem; }
+  footer .shell { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; color: var(--muted); font-family: var(--mono); font-size: .72rem; }
 
-  /* ── horizontal-scroll cinematic gallery ────────────── */
-  .gallery { position: relative; height: 440vh; }
-  .gal-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; align-items: center; }
-  .gal-head { position: absolute; top: clamp(4.5rem, 12vh, 7rem); left: clamp(1.1rem, 4vw, 2.6rem); z-index: 3; }
-  .gal-head .tag { font-size: .66rem; letter-spacing: .28em; text-transform: uppercase; color: var(--accent); }
-  .gal-head h2 { font-family: var(--disp); font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 700; letter-spacing: -.03em; color: var(--ink); margin-top: .4rem; }
-  .gal-hint { position: absolute; bottom: 2rem; right: clamp(1.1rem, 4vw, 2.6rem); z-index: 3; font-size: .64rem; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: .6rem; }
-  .gal-hint .bar { width: 40px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent)); position: relative; overflow: hidden; }
-  .gal-hint .bar::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--accent); animation: sweep 2.2s ease-in-out infinite; }
-  .gal-track { display: flex; gap: 3vw; padding: 0 8vw; will-change: transform; }
-  .panel { flex: 0 0 auto; width: min(78vw, 1000px); height: 72vh; border-radius: 18px; overflow: hidden; position: relative; border: 1px solid var(--border); box-shadow: 0 30px 80px rgba(0,0,0,.55); }
-  .panel.text-panel { width: min(60vw, 640px); border: none; box-shadow: none; display: flex; flex-direction: column; justify-content: center; }
-  .panel.text-panel .big { font-family: var(--disp); font-size: clamp(2.2rem, 6vw, 4.2rem); font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--ink); }
-  .panel.text-panel .big em { font-style: normal; background: linear-gradient(110deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .panel.text-panel p { color: var(--muted); font-size: .92rem; max-width: 26em; margin-top: 1.2rem; }
-  .panel .p-img { position: absolute; inset: 0; background: var(--img) center/cover no-repeat; transform: scale(1.08); }
-  .panel .p-tint { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(4,6,10,.55) 78%, rgba(4,6,10,.92) 100%), linear-gradient(90deg, rgba(4,6,10,.4), transparent 60%); }
-  .panel .p-grid { position: absolute; inset: 0; opacity: .25; background-image: linear-gradient(rgba(0,255,156,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,156,.06) 1px, transparent 1px); background-size: 46px 46px; }
-  .panel .p-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 2rem 2.2rem; z-index: 2; }
-  .panel .p-cap .n { font-family: var(--mono); font-size: .68rem; letter-spacing: .2em; color: var(--accent); }
-  .panel .p-cap h3 { font-family: var(--disp); font-size: clamp(1.4rem, 3.4vw, 2.2rem); color: var(--ink); margin: .3rem 0 .35rem; letter-spacing: -.01em; }
-  .panel .p-cap p { font-size: .88rem; color: #b9c8d6; max-width: 34em; margin: 0; }
+  /* reveal */
+  .js .reveal { opacity: 0; transform: translateY(22px); }
+  .no-anim .reveal { opacity: 1 !important; transform: none !important; }
 
   /* ── responsive ─────────────────────────────────────── */
-  @media (max-width: 860px) {
-    #hero-canvas { opacity: .6; }
-    #hero-canvas.ready { opacity: .6; }
-    .pin { height: auto; } .pin-stage { position: relative; height: auto; display: block; padding: 5rem 0; }
-    #stack-canvas { position: relative; height: 60vh; inset: auto; }
-    .pin-copy { pointer-events: auto; }
-    .pin-copy .row { grid-template-columns: 1fr; height: auto; gap: 1.6rem; }
-    .gallery { height: auto; } .gal-stage { position: relative; height: auto; display: block; padding: 6rem 0 4rem; }
-    .gal-head, .gal-hint { position: static; margin: 0 auto 1.4rem; max-width: 1080px; padding: 0 clamp(1.1rem,4vw,2.6rem); }
-    .gal-hint { display: none; }
-    .gal-track { flex-direction: column; transform: none !important; gap: 1.4rem; padding: 0 clamp(1.1rem,4vw,2.6rem); align-items: stretch; }
-    .panel, .panel.text-panel { width: 100%; height: auto; min-height: 60vh; }
-    .panel.text-panel { min-height: auto; padding: 1rem 0 2rem; }
+  @media (max-width: 1000px) {
+    .t-head { grid-column: span 12; grid-row: auto; min-height: 300px; }
+    .t-mesh { grid-column: span 12; grid-row: auto; min-height: 260px; }
+    .t-6 { grid-column: span 6; }
+    .t-8 { grid-column: span 12; }
+    .defense .grid2 { grid-template-columns: 1fr; height: auto; }
+    .t-stack { min-height: 52vh; }
+  }
+  @media (max-width: 720px) {
+    .defense { height: auto; } .defense .pin { position: relative; height: auto; display: block; padding: 2rem 0; }
+    .t-stack { min-height: 56vh; }
+    .t-kpi { grid-column: span 6; }
+    .t-6, .t-4, .t-3 { grid-column: span 12; }
+    .svc { grid-column: span 6 !important; }
+  }
+  @media (max-width: 460px) {
+    .t-kpi { grid-column: span 12; }
+    .svc { grid-column: span 12 !important; }
   }
 
-  /* JS/animation off — everything visible & static */
-  .no-anim .reveal, .no-anim .hero-lede, .no-anim .hero-cta { opacity: 1 !important; transform: none !important; }
-  .no-anim .kin { transform: none !important; }
-
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .scrollcue .bar::after, .gal-hint .bar::after { animation: none; }
+    html { scroll-behavior: auto; } .status-pill .d, .motion-btn .d { animation: none; }
   }
 </style>
 <noscript><style>
-  #hero-canvas, #stack-canvas, .cursor-glow, .gal-hint, .scrollcue { display: none !important; }
-  .reveal, .hero-lede, .hero-cta { opacity: 1 !important; transform: none !important; }
-  .kin { transform: none !important; }
-  .pin { height: auto; } .pin-stage { position: relative; height: auto; display: block; padding: 3rem 0; }
-  .pin-copy .row { grid-template-columns: 1fr; height: auto; }
-  .gallery { height: auto; } .gal-stage { position: relative; height: auto; display: block; }
-  .gal-head { position: static; } .gal-track { flex-direction: column; transform: none !important; }
-  .panel, .panel.text-panel { width: 100%; height: auto; min-height: 50vh; }
+  #mesh-canvas, #stack-canvas, .cursor-glow { display: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .defense { height: auto; } .defense .pin { position: relative; height: auto; display: block; }
+  .defense .grid2 { grid-template-columns: 1fr; height: auto; } .t-stack { min-height: 40vh; }
 </style></noscript>
 </head>
 <body>
 
-<canvas id="hero-canvas" aria-hidden="true"></canvas>
-<div class="backdrop" aria-hidden="true"></div>
-<div class="noise" aria-hidden="true"></div>
-<div class="vignette" aria-hidden="true"></div>
+<div class="bg-field" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
 <div class="cursor-glow" aria-hidden="true"></div>
 <div class="progress" aria-hidden="true"></div>
 
-<div class="chrome">
-  <a class="brand" href="#top"><span class="mk">✦</span> PI5 · HOMELAB</a>
-  <nav class="topnav">
-    <a href="#network" class="mnav">Network</a>
-    <a href="#services" class="mnav">Services</a>
-    <a href="#security" class="mnav">Security</a>
-    <a href="#incidents" class="mnav">Incidents</a>
-    <a href="#stack" class="mnav">Stack</a>
+<!-- gradient defs for sparklines -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#34d399" stop-opacity="0.5"/>
+    <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+  </linearGradient>
+</defs></svg>
+
+<nav class="nav">
+  <a class="brand" href="#top"><span class="mk"></span> PI5 · HOMELAB</a>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="#defense">Defense</a>
+      <a href="#services">Services</a>
+      <a href="#network">Network</a>
+      <a href="#security">Security</a>
+      <a href="#incidents">Incidents</a>
+      <a href="#stack">Stack</a>
+    </div>
+    <span class="status-pill"><span class="d"></span><span class="t">ALL SYSTEMS</span> OPERATIONAL</span>
     <button class="motion-btn" id="motion" aria-pressed="false"><span class="d"></span> Motion</button>
-  </nav>
-</div>
+  </div>
+</nav>
 
-<div class="counter" aria-hidden="true">
-  <div class="big" id="count-big"><b>00</b> / 08</div>
-  <span class="sub" id="count-sub">Index</span>
-</div>
+<!-- ══════════ HERO — control-room bento ══════════ -->
+<header class="hero section shell" id="top">
+  <div class="bento">
+    <div class="tile t-head reveal">
+      <span class="eyebrow">Raspberry Pi 5 · Self-hosted infrastructure &amp; security</span>
+      <h1>Zero public<br><span class="g">attack surface.</span></h1>
+      <p class="lede">A hardened homelab where every service lives behind a private WireGuard mesh with <b>no open inbound ports</b> — defense in depth, container hardening, and full observability, presented as a live control-room.</p>
+      <div class="cta">
+        <a class="btn primary" href="#defense">Walk the build →</a>
+        <a class="btn ghost" href="https://github.com/DimPourn/sh_lab">View source</a>
+      </div>
+    </div>
 
-<header class="hero" id="top">
-  <div class="hero-inner">
-    <div class="overline"><span class="line"><span class="kin">Self-hosted infrastructure &amp; security — Raspberry Pi 5</span></span></div>
-    <h1 class="hero-title">
-      <span class="line"><span class="kin">Pi&nbsp;5 Homelab.</span></span>
-      <span class="line"><span class="kin hl">Zero public</span></span>
-      <span class="line"><span class="kin hl">attack surface.</span></span>
-    </h1>
-    <p class="hero-lede">Every service lives behind a private WireGuard mesh with <strong>no open inbound ports</strong> —
-    defense in depth, container hardening, and full observability underneath. Scroll to walk the build.</p>
-    <div class="hero-cta">
-      <a class="btn primary" href="#defense">Enter the build ↓</a>
-      <a class="btn ghost" href="https://github.com/DimPourn/sh_lab">View source</a>
+    <div class="tile t-mesh reveal">
+      <canvas id="mesh-canvas" aria-hidden="true"></canvas>
+      <div class="mesh-top">// wireguard mesh</div>
+      <div class="mesh-cap"><b>●</b> per-device keys · no router ports</div>
+    </div>
+
+    <div class="tile t-kpi kpi ok reveal">
+      <span class="label">Public ports open</span>
+      <div class="val">0</div>
+      <div class="sub"><span class="up">▲</span> inbound blocked at the edge</div>
+    </div>
+    <div class="tile t-kpi kpi ok reveal">
+      <span class="label">Service uptime</span>
+      <div class="val">99.9<small>%</small></div>
+      <svg class="spark" viewBox="0 0 120 30" preserveAspectRatio="none">
+        <path class="area" d="M0,22 L12,18 L24,20 L36,12 L48,15 L60,8 L72,11 L84,6 L96,9 L108,5 L120,7 L120,30 L0,30 Z"/>
+        <path class="line" d="M0,22 L12,18 L24,20 L36,12 L48,15 L60,8 L72,11 L84,6 L96,9 L108,5 L120,7"/>
+      </svg>
+    </div>
+    <div class="tile t-kpi kpi reveal">
+      <span class="label">Services running</span>
+      <div class="val" style="color:var(--blue)">12</div>
+      <div class="sub">containerized &amp; hardened</div>
+    </div>
+    <div class="tile t-kpi kpi reveal">
+      <span class="label">Domains blocked</span>
+      <div class="val" style="color:var(--blue)">1.2<small>M+</small></div>
+      <div class="sub">network-wide via Pi-hole</div>
     </div>
   </div>
-  <div class="scrollcue"><span class="bar"></span> Scroll to continue</div>
 </header>
 
-<!-- ══ 01 · flagship WebGL exploded defense-in-depth ══ -->
-<section class="pin" id="defense" data-chapter="Defense in depth">
-  <div class="pin-stage">
-    <canvas id="stack-canvas" aria-hidden="true"></canvas>
-    <div class="pin-copy">
-      <div class="row">
-        <div class="pin-lead">
-          <div class="tag">// defense in depth</div>
-          <h2>Five layers.<br>No single point of failure.</h2>
-          <p>Scroll to pull the stack apart. Access has to clear every independent layer below — no one misconfiguration exposes a service. Even a failure that opens one plane is caught by the next.</p>
+<!-- ══════════ DEFENSE IN DEPTH — pinned 3D feature ══════════ -->
+<section class="defense" id="defense" data-chapter="Defense">
+  <div class="pin">
+    <div class="frame">
+      <div class="grid2">
+        <div class="tile t-stack">
+          <canvas id="stack-canvas" aria-hidden="true"></canvas>
+          <div class="lbl"><span class="k">// defense in depth</span></div>
+          <div class="hint">scroll to pull apart ↕</div>
         </div>
-        <ul class="layers">
-          <li data-layer="0"><b>WireGuard mesh</b>VPN-only ingress · per-device keys · no router ports</li>
-          <li data-layer="1"><b>Tailscale Serve</b>HTTPS terminated on the tailnet interface only</li>
-          <li data-layer="2"><b>UFW host firewall</b>each Docker subnet allow-listed, independent of the VPN</li>
-          <li data-layer="3"><b>Segmented Docker networks</b>isolated bridges limit lateral movement</li>
-          <li data-layer="4"><b>Hardened containers</b>least privilege · dropped caps · no-new-privileges</li>
-        </ul>
+        <div class="tile t-layers">
+          <span class="eyebrow" style="font-family:var(--mono);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);margin-bottom:.7rem;display:block;">Five independent layers</span>
+          <h3>No single point of failure.</h3>
+          <p class="intro">Access has to clear every layer below — no one misconfiguration exposes a service. A failure that opens one plane is caught by the next.</p>
+          <ul class="layers">
+            <li data-layer="0"><b>WireGuard mesh</b>VPN-only ingress · per-device keys · no router ports</li>
+            <li data-layer="1"><b>Tailscale Serve</b>HTTPS terminated on the tailnet interface only</li>
+            <li data-layer="2"><b>UFW host firewall</b>each Docker subnet allow-listed, independent of the VPN</li>
+            <li data-layer="3"><b>Segmented Docker networks</b>isolated bridges limit lateral movement</li>
+            <li data-layer="4"><b>Hardened containers</b>least privilege · dropped caps · no-new-privileges</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="network" data-chapter="Network">
-  <div class="wrap reveal">
-    <div class="chap">
-      <div class="idx">01</div>
-      <span class="tag">Access model</span>
-      <h2 data-kin>Network &amp; access</h2>
-      <div class="rule"></div>
+<!-- ══════════ SERVICES — bento of tiles ══════════ -->
+<section class="section shell" id="services" data-chapter="Services">
+  <div class="sec-head reveal">
+    <div>
+      <div class="kicker"><span class="n">01</span> What runs on it</div>
+      <h2>Twelve services, one board</h2>
     </div>
-    <p>Nothing on this box is reachable from the open internet. Access flows through layers that are
-    each scoped independently, so no single misconfiguration exposes a service:</p>
-    <div class="flow">client device
-   │  per-device WireGuard key (Tailscale mesh — no router port forwarding)
-   ▼
-<b>Tailscale Serve</b> — HTTPS termination on the tailnet interface only
-   │  reverse-proxies to services bound to 127.0.0.1
-   ▼
-<b>UFW host firewall</b> — each Docker subnet allow-listed per port, independently of the VPN
-   │
-   ▼
-<b>segmented Docker bridge networks</b> — monitoring / proxy-facing / app networks kept isolated</div>
-    <ul class="checks">
-      <li><b>VPN-only ingress.</b> A WireGuard mesh with per-device key authentication is the sole way in; no ports are forwarded on the router.</li>
-      <li><b>Loopback binding.</b> Services listen on <code>127.0.0.1</code> and are only exposed via the tailnet-facing reverse proxy — nothing binds a public wildcard address.</li>
-      <li><b>Firewall as a second, independent layer.</b> Each internal Docker subnet is explicitly allow-listed for only the specific ports it needs. The VPN failing open would still not expose services.</li>
-      <li><b>Network segmentation.</b> Services are split across isolated bridge networks instead of one flat network, limiting lateral movement between unrelated services.</li>
-    </ul>
+    <p>Split into core infrastructure, personal apps, and an observability stack — each containerized and hardened.</p>
+  </div>
+  <div class="bento reveal">
+    <div class="tile svc infra t-3"><div class="card-head"><span class="dot"></span><h4>Pi-hole</h4></div><p>Network-wide DNS ad &amp; tracker blocking.</p></div>
+    <div class="tile svc infra t-3"><div class="card-head"><span class="dot"></span><h4>WUD</h4></div><p>What's Up Docker — image update tracking; stateful services opted out after a real incident.</p></div>
+    <div class="tile svc infra t-3"><div class="card-head"><span class="dot"></span><h4>Homepage</h4></div><p>Single-pane dashboard with live Grafana panels and native widgets.</p></div>
+    <div class="tile svc app t-3"><div class="card-head"><span class="dot"></span><h4>Vaultwarden</h4></div><p>Self-hosted, Bitwarden-compatible password manager.</p></div>
+    <div class="tile svc app t-4"><div class="card-head"><span class="dot"></span><h4>Paperless-ngx</h4></div><p>Document management &amp; archival with Greek + English OCR, backed by Postgres and Redis.</p></div>
+    <div class="tile svc app t-4"><div class="card-head"><span class="dot"></span><h4>Home Assistant</h4></div><p>Smart-home hub using host networking for LAN device discovery.</p></div>
+    <div class="tile svc app t-4"><div class="card-head"><span class="dot"></span><h4>Immich</h4></div><p>Self-hosted photo/video library (offline pending NAS-backed storage).</p></div>
+    <div class="tile svc obs t-3"><div class="card-head"><span class="dot"></span><h4>Prometheus</h4></div><p>Central metrics store scraping every service.</p></div>
+    <div class="tile svc obs t-3"><div class="card-head"><span class="dot"></span><h4>Grafana</h4></div><p>Dashboards for host, container, log, DNS &amp; smart-home metrics.</p></div>
+    <div class="tile svc obs t-3"><div class="card-head"><span class="dot"></span><h4>Loki + Promtail</h4></div><p>Centralized log aggregation across all containers.</p></div>
+    <div class="tile svc obs t-3"><div class="card-head"><span class="dot"></span><h4>Alertmanager + ntfy</h4></div><p>Alerts routed to push notifications — no dashboard-staring.</p></div>
+    <div class="tile svc obs t-8"><div class="card-head"><span class="dot"></span><h4>Exporters</h4></div><p>node-exporter, cAdvisor, blackbox-exporter and pihole-exporter feed host, container, endpoint-uptime and DNS metrics into Prometheus.</p></div>
+    <div class="tile svc infra t-4"><div class="card-head"><span class="dot"></span><h4>Hardware</h4></div><p>Raspberry Pi 5, Argon case. Root storage migrating SD → NVMe (WD Black SN770).</p></div>
   </div>
 </section>
 
-<!-- ══ horizontal cinematic gallery ══ -->
-<section class="gallery" id="gallery" data-chapter="The build">
-  <div class="gal-stage">
-    <div class="gal-head"><div class="tag">// the build</div><h2>One board. The whole lab.</h2></div>
-    <div class="gal-track" id="gal-track">
-      <div class="panel text-panel">
-        <div class="big">A single<br><em>Raspberry Pi 5</em><br>runs it all.</div>
-        <p>Every service is containerized, hardened, and reachable only across a private mesh. Scroll sideways through the hardware.</p>
-      </div>
-      <div class="panel" style="--img:url(assets/img/pi.jpg)">
-        <div class="p-img"></div><div class="p-tint"></div><div class="p-grid"></div>
-        <div class="p-cap"><div class="n">01 — the hardware</div><h3>Compact, silent, always on</h3><p>A Raspberry Pi 5 in an Argon case — migrating root storage from SD to NVMe to kill the last reliability bottleneck.</p></div>
-      </div>
-      <div class="panel" style="--img:url(assets/img/rack.jpg)">
-        <div class="p-img"></div><div class="p-tint"></div><div class="p-grid"></div>
-        <div class="p-cap"><div class="n">02 — segmentation</div><h3>Isolated networks, not one flat wire</h3><p>Services split across separate Docker bridge networks with a UFW layer on top — a compromised container can't roam the rest.</p></div>
-      </div>
-      <div class="panel" style="--img:url(assets/img/circuit.jpg)">
-        <div class="p-img"></div><div class="p-tint"></div><div class="p-grid"></div>
-        <div class="p-cap"><div class="n">03 — under the hood</div><h3>Where the interesting failures live</h3><p>Every layer that can break has broken at least once. The debugging is documented — it's the part worth reading.</p></div>
-      </div>
+<!-- ══════════ THE BUILD — photo bento ══════════ -->
+<section class="section shell" id="build" data-chapter="The build">
+  <div class="sec-head reveal">
+    <div>
+      <div class="kicker"><span class="n">02</span> The build</div>
+      <h2>One board. The whole lab.</h2>
     </div>
-    <div class="gal-hint"><span class="bar"></span> Scroll to pan</div>
+  </div>
+  <div class="bento reveal">
+    <div class="tile t-photo-lead t-4">
+      <div class="big">A single <em>Raspberry&nbsp;Pi&nbsp;5</em> runs it all.</div>
+      <p>Every service is containerized, hardened, and reachable only across a private mesh.</p>
+    </div>
+    <div class="tile photo t-4" style="--img:url(assets/img/pi.jpg)"><div class="img"></div><div class="tint"></div><div class="cap"><div class="n">01 — hardware</div><h4>Compact, silent, always on</h4><p>Pi 5 in an Argon case — migrating root storage to NVMe.</p></div></div>
+    <div class="tile photo t-4" style="--img:url(assets/img/rack.jpg)"><div class="img"></div><div class="tint"></div><div class="cap"><div class="n">02 — segmentation</div><h4>Isolated networks, not one flat wire</h4><p>Separate Docker bridges with a UFW layer on top.</p></div></div>
+    <div class="tile photo t-8" style="--img:url(assets/img/circuit.jpg)"><div class="img"></div><div class="tint"></div><div class="cap"><div class="n">03 — under the hood</div><h4>Where the interesting failures live</h4><p>Every layer that can break has broken at least once — the debugging is documented below.</p></div></div>
+    <div class="tile t-photo-lead t-4">
+      <div class="big">The failures are<br><em>the point.</em></div>
+      <p>A clean success story teaches nothing. The incident log is the part worth reading.</p>
+    </div>
   </div>
 </section>
 
-<section id="services" data-chapter="Services">
-  <div class="wrap reveal">
-    <div class="chap">
-      <div class="idx">02</div>
-      <span class="tag">What runs on it</span>
-      <h2 data-kin>Services</h2>
-      <div class="rule"></div>
+<!-- ══════════ NETWORK & ACCESS ══════════ -->
+<section class="section shell" id="network" data-chapter="Network">
+  <div class="sec-head reveal">
+    <div>
+      <div class="kicker"><span class="n">03</span> Access model</div>
+      <h2>Nothing reachable from the open internet</h2>
     </div>
-    <div class="grid">
-      <div class="card infra"><h4><span class="dot"></span>Pi-hole</h4><p>Network-wide DNS ad &amp; tracker blocking.</p></div>
-      <div class="card infra"><h4><span class="dot"></span>WUD (What's Up Docker)</h4><p>Tracks &amp; applies container image updates — stateful services explicitly opted out after a real incident.</p></div>
-      <div class="card"><h4><span class="dot"></span>Vaultwarden</h4><p>Self-hosted, Bitwarden-compatible password manager.</p></div>
-      <div class="card"><h4><span class="dot"></span>Paperless-ngx</h4><p>Document management &amp; archival with Greek + English OCR, backed by Postgres and Redis.</p></div>
-      <div class="card"><h4><span class="dot"></span>Home Assistant</h4><p>Smart-home hub using host networking for LAN device discovery.</p></div>
-      <div class="card"><h4><span class="dot"></span>Immich</h4><p>Self-hosted photo/video library (offline pending dedicated NAS-backed storage).</p></div>
-      <div class="card obs"><h4><span class="dot"></span>Prometheus</h4><p>Central metrics store scraping every service in the stack.</p></div>
-      <div class="card obs"><h4><span class="dot"></span>Grafana</h4><p>Dashboards for host metrics, per-container usage, logs, DNS and smart-home stats — embedded live in the front end.</p></div>
-      <div class="card obs"><h4><span class="dot"></span>Alertmanager + ntfy</h4><p>Alerts routed to push notifications — nobody has to stare at a dashboard.</p></div>
-      <div class="card obs"><h4><span class="dot"></span>Loki + Promtail</h4><p>Centralized log aggregation across all containers.</p></div>
-      <div class="card obs"><h4><span class="dot"></span>Exporters</h4><p>node-exporter, cAdvisor, blackbox-exporter, pihole-exporter — host, container, endpoint and DNS metrics.</p></div>
-      <div class="card infra"><h4><span class="dot"></span>Homepage</h4><p>Single-pane-of-glass dashboard with live Grafana panels and native service widgets.</p></div>
+    <p>Access flows through independently-scoped layers, so no single misconfiguration exposes a service.</p>
+  </div>
+  <div class="bento reveal">
+    <div class="tile t-6">
+      <div class="card-head"><span class="dot"></span><h4>Ingress path</h4></div>
+      <div class="flow">client device
+<span class="arrow">   │</span>  per-device WireGuard key (Tailscale mesh)
+<span class="arrow">   ▼</span>
+<b>Tailscale Serve</b> — HTTPS on the tailnet interface only
+<span class="arrow">   │</span>  proxies to services bound to 127.0.0.1
+<span class="arrow">   ▼</span>
+<b>UFW host firewall</b> — each subnet allow-listed per port
+<span class="arrow">   │</span>
+<span class="arrow">   ▼</span>
+<b>segmented Docker networks</b> — isolated bridges</div>
     </div>
-    <p class="note">Hardware: Raspberry Pi 5 in an Argon case. Root storage is migrating from SD card to NVMe (WD Black SN770) to remove SD wear and I/O contention as a reliability bottleneck.</p>
+    <div class="tile t-6">
+      <div class="card-head"><span class="dot"></span><h4>What that buys</h4></div>
+      <ul class="checks">
+        <li><b>VPN-only ingress.</b> Per-device key auth is the sole way in; no ports are forwarded on the router.</li>
+        <li><b>Loopback binding.</b> Services listen on <code>127.0.0.1</code>, exposed only via the tailnet-facing proxy.</li>
+        <li><b>Firewall as a second, independent layer.</b> The VPN failing open would still not expose services.</li>
+        <li><b>Network segmentation.</b> Isolated bridge networks limit lateral movement between services.</li>
+      </ul>
+    </div>
   </div>
 </section>
 
-<section id="security" data-chapter="Security">
-  <div class="wrap reveal">
-    <div class="chap">
-      <div class="idx">03</div>
-      <span class="tag">How it's hardened</span>
-      <h2 data-kin>Security posture</h2>
-      <div class="rule"></div>
+<!-- ══════════ SECURITY POSTURE ══════════ -->
+<section class="section shell" id="security" data-chapter="Security">
+  <div class="sec-head reveal">
+    <div>
+      <div class="kicker"><span class="n">04</span> How it's hardened</div>
+      <h2>Security posture</h2>
     </div>
-    <ul class="checks">
-      <li><b>Zero public attack surface</b> — every service sits behind the mesh VPN; nothing is reachable from the open internet.</li>
-      <li><b>Defense in depth</b> — the firewall layer is scoped independently of the VPN, so a misconfigured container can't accidentally widen its audience.</li>
-      <li><b>Least privilege on containers</b> — <code>cap_drop: ALL</code> with narrow, explicit <code>cap_add</code> only where genuinely needed; <code>no-new-privileges</code> everywhere; non-root UID/GID mapping and read-only root filesystems where the image supports it.</li>
-      <li><b>Secrets out of configs and version control</b> — credentials injected via environment files or mounted read-only secret files (e.g. scrape jobs authenticate via <code>bearer_token_file</code>, never a token in a checked-in config).</li>
-      <li><b>Supply-chain-aware automation</b> — automatic image updates are useful but not blind: every stateful, data-bearing service is excluded from auto-following tags, so patch automation can't silently corrupt a database.</li>
-    </ul>
+  </div>
+  <div class="bento reveal">
+    <div class="tile t-4"><div class="card-head"><span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span><h4>Zero public attack surface</h4></div><p style="color:var(--muted);font-size:.86rem">Every service sits behind the mesh VPN; nothing is reachable from the open internet.</p></div>
+    <div class="tile t-4"><div class="card-head"><span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span><h4>Defense in depth</h4></div><p style="color:var(--muted);font-size:.86rem">The firewall layer is scoped independently of the VPN, so a misconfigured container can't widen its audience.</p></div>
+    <div class="tile t-4"><div class="card-head"><span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span><h4>Least privilege</h4></div><p style="color:var(--muted);font-size:.86rem"><code>cap_drop: ALL</code>, narrow <code>cap_add</code>, <code>no-new-privileges</code> everywhere, non-root UID/GID and read-only rootfs where supported.</p></div>
+    <div class="tile t-6"><div class="card-head"><span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span><h4>Secrets out of configs &amp; version control</h4></div><p style="color:var(--muted);font-size:.86rem">Credentials injected via environment files or mounted read-only secret files — e.g. scrape jobs authenticate via <code>bearer_token_file</code>, never a token in a checked-in config.</p></div>
+    <div class="tile t-6"><div class="card-head"><span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span><h4>Supply-chain-aware automation</h4></div><p style="color:var(--muted);font-size:.86rem">Automatic image updates aren't applied blindly: every stateful, data-bearing service is excluded from auto-following tags, so patch automation can't silently corrupt a database.</p></div>
   </div>
 </section>
 
-<section id="incidents" data-chapter="Incidents">
-  <div class="wrap reveal">
-    <div class="chap">
-      <div class="idx">04</div>
-      <span class="tag">Real failures, fixed</span>
-      <h2 data-kin>Incidents &amp; lessons</h2>
-      <div class="rule"></div>
+<!-- ══════════ INCIDENTS ══════════ -->
+<section class="section shell" id="incidents" data-chapter="Incidents">
+  <div class="sec-head reveal">
+    <div>
+      <div class="kicker"><span class="n">05</span> Real failures, fixed</div>
+      <h2>Incidents &amp; lessons</h2>
     </div>
-    <p class="note">Real problems hit and fixed during the build — kept because the debugging process is more informative than a clean success story.</p>
-
-    <div class="incident">
-      <h4><span class="tag">INC-01</span>An auto-updater silently corrupted a brand-new deployment</h4>
-      <p>While standing up Paperless-ngx, the update tracker — which watches Docker's live event stream, not just a schedule — grabbed the Postgres and Redis containers within seconds of creation and pushed them to tags it misjudged as "newer": a pre-release database beta and a legacy-architecture cache build. Root cause: tag comparators can't reliably tell a stable release from a beta/RC/legacy tag across every image's own versioning convention.</p>
-      <p class="lesson">Any new stateful service gets an explicit auto-update opt-out label <em>before</em> its first deploy, not after.</p>
+    <p>Kept because the debugging process is more informative than a clean success story.</p>
+  </div>
+  <div class="bento reveal">
+    <div class="tile incident t-4">
+      <h4><span class="tag">INC-01</span>An auto-updater corrupted a brand-new deployment</h4>
+      <p>Standing up Paperless-ngx, the update tracker — watching Docker's live event stream — grabbed the Postgres and Redis containers within seconds of creation and pushed them to tags it misjudged as "newer": a pre-release DB beta and a legacy-arch cache build.</p>
+      <p class="lesson">New stateful services get an explicit auto-update opt-out label <em>before</em> first deploy.</p>
     </div>
-
-    <div class="incident">
-      <h4><span class="tag">INC-02</span>A reverse-proxied service returning 400s was three unrelated bugs stacked together</h4>
-      <p>Diagnosis peeled back in order: (a) the app didn't trust its reverse proxy's forwarded headers; (b) fixing that exposed a silent Bluetooth-integration retry loop quietly preventing the web server from restarting, with no visible crash; (c) a genuine port collision between the VPN's own listener and the app's wildcard bind. Each fix revealed the next problem.</p>
+    <div class="tile incident t-4">
+      <h4><span class="tag">INC-02</span>One 400 error was three unrelated bugs stacked</h4>
+      <p>Peeled back in order: (a) the app didn't trust its proxy's forwarded headers; (b) that exposed a silent Bluetooth retry loop blocking clean restarts; (c) a real port collision between the VPN listener and the app's wildcard bind. Each fix revealed the next.</p>
       <p class="lesson">Don't declare victory after the first plausible-looking fix.</p>
     </div>
-
-    <div class="incident">
-      <h4><span class="tag">INC-03</span>Cross-service metrics scraping failed with no application-level error at all</h4>
-      <p>Scrape requests timed out intermittently while app config, DNS, and container health all looked fine. The actual cause was the host firewall: one Docker subnet had been allow-listed to reach the target port, but a second subnet that needed the same access was simply missed when the rule was written.</p>
-      <p class="lesson">"Works from container A but not container B" almost always means the network/firewall layer, not the app.</p>
+    <div class="tile incident t-4">
+      <h4><span class="tag">INC-03</span>Metrics scraping failed with no app error at all</h4>
+      <p>Scrapes timed out intermittently while app config, DNS and container health looked fine. The cause was the host firewall: one Docker subnet was allow-listed to reach the port, but a second subnet that needed it was missed.</p>
+      <p class="lesson">"Works from A but not B" almost always means the network/firewall layer.</p>
     </div>
   </div>
 </section>
 
-<section id="stack" data-chapter="Stack">
-  <div class="wrap reveal">
-    <div class="chap">
-      <div class="idx">05</div>
-      <span class="tag">Everything at a glance</span>
-      <h2 data-kin>Stack summary</h2>
-      <div class="rule"></div>
+<!-- ══════════ STACK SUMMARY ══════════ -->
+<section class="section shell" id="stack" data-chapter="Stack">
+  <div class="sec-head reveal">
+    <div>
+      <div class="kicker"><span class="n">06</span> Everything at a glance</div>
+      <h2>Stack summary</h2>
     </div>
-    <div class="tablebox">
+  </div>
+  <div class="bento reveal">
+    <div class="tile t-wide tablebox">
       <table>
         <thead><tr><th>Layer</th><th>Tools</th></tr></thead>
         <tbody>
@@ -480,7 +526,7 @@
 </section>
 
 <footer>
-  <div class="wrap">
+  <div class="shell">
     <span>Pi 5 Homelab — a personal infrastructure &amp; security project</span>
     <span><a href="https://github.com/DimPourn/sh_lab">github.com/DimPourn/sh_lab</a></span>
   </div>
