@@ -200,6 +200,27 @@
   .incident .lesson::before { content: "lesson  "; font-family: var(--mono); color: var(--amber); font-size: .72rem; letter-spacing: .08em; }
   .incident { border-left: 3px solid rgba(251,113,133,.5); }
 
+  /* dot colour variants */
+  .dot.red { background: var(--red) !important; box-shadow: 0 0 8px var(--red) !important; }
+  .dot.amber { background: var(--amber) !important; box-shadow: 0 0 8px var(--amber) !important; }
+
+  /* status chip (roadmap / exception) */
+  .chip { margin-left: auto; font-family: var(--mono); font-size: .56rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--amber); border: 1px solid rgba(251,191,36,.4); background: rgba(251,191,36,.07); border-radius: 4px; padding: .18rem .46rem; white-space: nowrap; flex: none; }
+  .chip.crit { color: var(--red); border-color: rgba(251,113,133,.42); background: rgba(251,113,133,.08); }
+
+  /* roadmap tiles — honest gaps */
+  .roadmap { border-left: 3px solid rgba(251,191,36,.45); }
+  .roadmap.crit { border-left-color: rgba(251,113,133,.55); }
+  .roadmap p { font-size: .85rem; color: var(--muted); }
+  .roadmap p b { color: var(--text); font-weight: 600; }
+
+  /* conscious-exception callout */
+  .exception { border-left: 3px solid rgba(251,191,36,.5);
+    background: linear-gradient(90deg, rgba(251,191,36,.055), var(--tile) 46%); }
+  .exception p { font-size: .87rem; color: var(--text); max-width: 64em; }
+  .exception p b { color: var(--ink); }
+
   table { border-collapse: collapse; width: 100%; font-size: .84rem; font-family: var(--mono); }
   th, td { text-align: left; padding: .62rem .9rem; border-bottom: 1px solid var(--border); }
   th { font-size: .64rem; text-transform: uppercase; letter-spacing: .12em; color: var(--blue); font-weight: 600; }
@@ -286,6 +307,7 @@
       <a href="#network">Network</a>
       <a href="#security">Security</a>
       <a href="#incidents">Incidents</a>
+      <a href="#roadmap">Roadmap</a>
       <a href="#stack">Stack</a>
     </div>
     <span class="status-pill"><span class="d"></span><span class="t">ALL SYSTEMS</span> OPERATIONAL</span>
@@ -463,6 +485,7 @@
     <div class="tile t-4"><div class="card-head"><span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span><h4>Least privilege</h4></div><p style="color:var(--muted);font-size:.86rem"><code>cap_drop: ALL</code>, narrow <code>cap_add</code>, <code>no-new-privileges</code> everywhere, non-root UID/GID and read-only rootfs where supported.</p></div>
     <div class="tile t-6"><div class="card-head"><span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span><h4>Secrets out of configs &amp; version control</h4></div><p style="color:var(--muted);font-size:.86rem">Credentials injected via environment files or mounted read-only secret files — e.g. scrape jobs authenticate via <code>bearer_token_file</code>, never a token in a checked-in config.</p></div>
     <div class="tile t-6"><div class="card-head"><span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span><h4>Supply-chain-aware automation</h4></div><p style="color:var(--muted);font-size:.86rem">Automatic image updates aren't applied blindly: every stateful, data-bearing service is excluded from auto-following tags, so patch automation can't silently corrupt a database.</p></div>
+    <div class="tile exception t-wide"><div class="card-head"><span class="dot amber"></span><h4>One documented, conscious exception</h4><span class="chip">Known trade-off</span></div><p>cAdvisor still runs in Docker's <code>privileged</code> mode rather than a minimal capability set. This was evaluated and <b>deliberately deferred, not overlooked</b> — cAdvisor needs deep host/cgroup introspection, and a wrong minimal-capability set tends to fail <em>silently</em> (metrics quietly stop reporting instead of erroring), which is a worse outcome than the known, contained trade-off. Hardening blindly here would trade a visible risk for an invisible one.</p></div>
   </div>
 </section>
 
@@ -494,11 +517,36 @@
   </div>
 </section>
 
+<!-- ══════════ ROADMAP — honest gaps ══════════ -->
+<section class="section shell" id="roadmap" data-chapter="Roadmap">
+  <div class="sec-head reveal">
+    <div>
+      <div class="kicker"><span class="n">06</span> Honest gaps &amp; what's next</div>
+      <h2>Roadmap</h2>
+    </div>
+    <p>A build worth trusting names what it hasn't solved yet. These are the known gaps, in priority order.</p>
+  </div>
+  <div class="bento reveal">
+    <div class="tile roadmap crit t-4">
+      <div class="card-head"><span class="dot red"></span><h4>Backups</h4><span class="chip crit">Biggest gap</span></div>
+      <p>Nothing is backed up yet — password vault, DNS config, document store, log history, photo library. The plan is <b>Kopia against a NAS</b> once it's online, deliberately <b>not</b> a sleep-prone laptop, which is an unreliable always-on backup target in practice.</p>
+    </div>
+    <div class="tile roadmap t-4">
+      <div class="card-head"><span class="dot amber"></span><h4>Storage migration</h4><span class="chip">In progress</span></div>
+      <p>Moving the root filesystem and volumes off the SD card onto <b>NVMe</b> (WD Black SN770), removing SD-card wear and I/O contention as a reliability bottleneck.</p>
+    </div>
+    <div class="tile roadmap t-4">
+      <div class="card-head"><span class="dot amber"></span><h4>Home Assistant</h4><span class="chip">In progress</span></div>
+      <p>Onboarding is done; still connecting the first smart device and finishing API integration into the monitoring stack.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ══════════ STACK SUMMARY ══════════ -->
 <section class="section shell" id="stack" data-chapter="Stack">
   <div class="sec-head reveal">
     <div>
-      <div class="kicker"><span class="n">06</span> Everything at a glance</div>
+      <div class="kicker"><span class="n">07</span> Everything at a glance</div>
       <h2>Stack summary</h2>
     </div>
   </div>
