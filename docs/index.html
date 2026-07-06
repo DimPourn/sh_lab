@@ -222,7 +222,6 @@
       <a href="#services">Services</a>
       <a href="#security">Security</a>
       <a href="#incidents">Incidents</a>
-      <a href="#roadmap">Roadmap</a>
     </div>
     <button class="motion-btn" id="motion" aria-pressed="false"><span class="d"></span> Motion</button>
   </div>
@@ -257,38 +256,38 @@
       <article class="layer" data-i="0" style="--accent:#67e8f9">
         <div class="lnum">01 — the edge</div>
         <h3>The internet <span class="a">stops here.</span></h3>
-        <p class="desc">No ports are forwarded on the router. There is no public inbound address — the open internet simply has nothing to reach.</p>
-        <div class="meta">router: 0 inbound forwards<br>attack surface: none exposed</div>
+        <p class="desc">No ports are forwarded on the router and nothing binds to a public interface. There is no listening service for a scanner or bot to find — the usual first move of an attack, "find an open port", has nothing to land on.</p>
+        <div class="meta">router: 0 inbound forwards<br>nmap from the WAN: no open ports<br>attack surface: none exposed</div>
       </article>
       <article class="layer" data-i="1" style="--accent:#a78bfa">
         <div class="lnum">02 — wireguard mesh</div>
         <h3>The only <span class="a">way in.</span></h3>
-        <p class="desc">Tailscale builds a private WireGuard mesh. Every device authenticates with its own key — there is no shared password and no public endpoint.</p>
-        <div class="meta">tailscale · per-device keys<br>ingress: VPN-only</div>
+        <p class="desc">Tailscale builds a private WireGuard mesh where every device authenticates with its own key — no shared password, no public endpoint. Access is identity-based per device: revoking one key cuts that device off instantly without touching anything else, and traffic is end-to-end encrypted.</p>
+        <div class="meta">tailscale · per-device keys<br>ingress: VPN-only<br>revocable, identity-based access</div>
       </article>
       <article class="layer" data-i="2" style="--accent:#c084fc">
         <div class="lnum">03 — tailscale serve</div>
         <h3>TLS on the <span class="a">tailnet.</span></h3>
-        <p class="desc">HTTPS is terminated on the tailnet interface and reverse-proxied to services bound to <code>127.0.0.1</code>. Nothing listens on a public-facing address.</p>
-        <div class="meta">https → 127.0.0.1<br>no wildcard binds</div>
+        <p class="desc">Tailscale Serve terminates HTTPS on the tailnet interface and reverse-proxies to services bound to <code>127.0.0.1</code> — nothing listens on a public-facing wildcard address. Certificates for the tailnet hostname are issued and renewed automatically, so every service is reachable over HTTPS without exposing a port or hand-managing certs.</p>
+        <div class="meta">https → 127.0.0.1<br>no wildcard binds<br>auto-issued & renewed TLS</div>
       </article>
       <article class="layer" data-i="3" style="--accent:#f472b6">
         <div class="lnum">04 — ufw host firewall</div>
         <h3>An independent <span class="a">second layer.</span></h3>
-        <p class="desc">UFW allow-lists each Docker subnet to only the specific ports it needs — scoped independently of the VPN. If the VPN failed open, services still would not be exposed.</p>
-        <div class="meta">per-subnet allow-lists<br>defense in depth, not "the VPN handles it"</div>
+        <p class="desc">UFW allow-lists each Docker subnet to only the specific ports it needs, scoped independently of the VPN. Every rule names a source subnet and a destination port, so a service can only be reached by the containers that legitimately need it — e.g. only the monitoring subnet may hit an app's metrics port. If the VPN ever failed open, services still would not be exposed.</p>
+        <div class="meta">per-subnet allow-lists<br>least-privilege network paths<br>defense in depth, not "the VPN handles it"</div>
       </article>
       <article class="layer" data-i="4" style="--accent:#fb7185">
         <div class="lnum">05 — segmented networks</div>
         <h3>No flat <span class="a">wire.</span></h3>
-        <p class="desc">Services are split across isolated Docker bridge networks — a monitoring net, a reverse-proxy net — so one compromised container can't reach unrelated services.</p>
-        <div class="meta">isolated bridges<br>contained blast radius</div>
+        <p class="desc">Services are split across isolated Docker bridge networks — a monitoring net, a reverse-proxy net — instead of one flat network where everything can talk to everything. A container only joins the networks it actually needs, so a compromise stays boxed inside its own segment with no lateral path to unrelated services.</p>
+        <div class="meta">isolated bridges<br>no lateral movement by default<br>contained blast radius</div>
       </article>
       <article class="layer" data-i="5" style="--accent:#fbbf24">
         <div class="lnum">06 — the hardened core</div>
         <h3>Least <span class="a">privilege.</span></h3>
-        <p class="desc"><code>cap_drop: ALL</code> with a narrow <code>cap_add</code>, <code>no-new-privileges</code> everywhere, non-root execution and read-only root filesystems where the image supports it.</p>
-        <div class="meta">12 containers · hardened by default<br>1 conscious exception, documented below</div>
+        <p class="desc">Every container starts from zero Linux capabilities — <code>cap_drop: ALL</code> — and gets back only the few it genuinely needs. <code>no-new-privileges</code> blocks escalation, processes run as an unprivileged user, and root filesystems are read-only where the image supports it. Even a full app compromise stays boxed in a low-privilege, mostly read-only container.</p>
+        <div class="meta">12 containers · hardened by default<br>cap_drop ALL · no-new-privileges · non-root<br>1 conscious exception, documented below</div>
       </article>
     </div>
     <div class="descent-hint">scroll to descend ↓</div>
@@ -366,24 +365,10 @@
   </div>
 </section>
 
-<!-- ══════════ ROADMAP ══════════ -->
-<section class="section shell" id="roadmap" data-chapter="Roadmap">
-  <div class="sec-head reveal">
-    <span class="kicker"><span class="n">04 —</span> honest gaps &amp; what's next</span>
-    <h2>Roadmap</h2>
-    <p>A build worth trusting names what it hasn't solved yet. These are the known gaps, in priority order.</p>
-  </div>
-  <div class="grid g-3 reveal">
-    <div class="card" style="--accent:var(--pink)"><h4><span class="dot"></span>Backups <span class="chip">biggest gap</span></h4><p>Nothing is backed up yet — password vault, DNS config, document store, log history, photo library. The plan is <b>Kopia against a NAS</b> once it's online, deliberately <b>not</b> a sleep-prone laptop.</p></div>
-    <div class="card" style="--accent:var(--gold)"><h4><span class="dot"></span>Storage migration <span class="chip">in progress</span></h4><p>Moving the root filesystem and volumes off the SD card onto <b>NVMe</b> (WD Black SN770), removing SD-card wear and I/O contention as a reliability bottleneck.</p></div>
-    <div class="card" style="--accent:var(--gold)"><h4><span class="dot"></span>Home Assistant <span class="chip">in progress</span></h4><p>Onboarding is done; still connecting the first smart device and finishing API integration into the monitoring stack.</p></div>
-  </div>
-</section>
-
 <!-- ══════════ STACK ══════════ -->
 <section class="section shell" id="stack" data-chapter="Stack">
   <div class="sec-head reveal">
-    <span class="kicker"><span class="n">05 —</span> everything at a glance</span>
+    <span class="kicker"><span class="n">04 —</span> everything at a glance</span>
     <h2>Stack summary</h2>
   </div>
   <div class="tablewrap reveal">
@@ -409,8 +394,8 @@
 
 <footer>
   <div class="shell">
-    <span>Descent — a personal infrastructure &amp; security project · Raspberry Pi 5</span>
-    <span><a href="https://github.com/DimPourn/sh_lab">github.com/DimPourn/sh_lab</a></span>
+    <span><a href="https://www.linkedin.com/in/dimpournatzis" target="_blank" rel="noopener">Dimitris Pournatzis · LinkedIn ↗</a></span>
+    <span><a href="https://github.com/DimPourn/sh_lab" target="_blank" rel="noopener">github.com/DimPourn/sh_lab ↗</a></span>
   </div>
 </footer>
 
