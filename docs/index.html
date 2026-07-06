@@ -6,7 +6,7 @@
 <title>Descent — A Zero-Trust Raspberry Pi 5 Homelab</title>
 <meta name="description" content="A cinematic flythrough of a hardened Raspberry Pi 5 homelab: descend through six layers of defense — from the sealed edge down to hardened containers. Zero public attack surface.">
 <meta name="color-scheme" content="dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23110a1f'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23f472b6'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23a78bfa' stroke-width='1.4' opacity='.8'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23fbbf24' stroke-width='1' opacity='.5'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070b16'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%2338bdf8'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23818cf8' stroke-width='1.4' opacity='.8'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23fcd34d' stroke-width='1' opacity='.5'/%3E%3C/svg%3E">
 <meta property="og:title" content="Descent — A Zero-Trust Raspberry Pi 5 Homelab">
 <meta property="og:description" content="A cinematic 3D flythrough through six layers of defense on a self-hosted Pi 5 homelab.">
 <meta property="og:type" content="website">
@@ -15,24 +15,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #08060f;
-    --bg-2: #0f0a1e;
-    --plum: #150d28;
-    --panel: rgba(24, 16, 42, .55);
-    --panel-solid: #140c26;
-    --border: rgba(167, 139, 250, .18);
-    --border-hi: rgba(244, 114, 182, .5);
-    --ink: #f6f1ff;
-    --text: #c8bce0;
-    --muted: #8d7fb0;
-    --faint: #5b4f7a;
-    --violet: #a78bfa;
-    --violet-d: #8b5cf6;
-    --magenta: #f472b6;
-    --pink: #ff6ea9;
-    --gold: #fbbf24;
-    --amber: #fca311;
-    --cyan: #67e8f9;
+    --bg: #070b16;
+    --bg-2: #0b1220;
+    --plum: #0e1626;
+    --panel: rgba(18, 26, 48, .55);
+    --panel-solid: #0f1526;
+    --border: rgba(129, 140, 248, .2);
+    --border-hi: rgba(56, 189, 248, .5);
+    --ink: #eef4ff;
+    --text: #b8c8e4;
+    --muted: #808eae;
+    --faint: #4e5b7c;
+    --violet: #818cf8;
+    --violet-d: #6366f1;
+    --magenta: #38bdf8;
+    --pink: #22d3ee;
+    --gold: #fcd34d;
+    --amber: #f59e0b;
+    --cyan: #2dd4bf;
     --disp: "Space Grotesk", system-ui, sans-serif;
     --sans: "Sora", system-ui, -apple-system, sans-serif;
     --mono: "Space Mono", ui-monospace, Menlo, monospace;
@@ -47,7 +47,7 @@
     font-family: var(--sans); font-size: 15px; line-height: 1.7; font-weight: 300;
     -webkit-font-smoothing: antialiased; overflow-x: clip; letter-spacing: .005em;
   }
-  ::selection { background: rgba(244, 114, 182, .32); color: #fff; }
+  ::selection { background: rgba(56, 189, 248, .32); color: #fff; }
   img { max-width: 100%; display: block; }
   a { color: var(--magenta); text-decoration: none; }
   h1, h2, h3, h4 { font-family: var(--disp); color: var(--ink); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; }
@@ -56,22 +56,22 @@
   #scene { position: fixed; inset: 0; z-index: -2; display: block; width: 100%; height: 100%; }
   .veil { position: fixed; inset: 0; z-index: -1; pointer-events: none;
     background:
-      radial-gradient(70% 50% at 78% 8%, rgba(139,92,246,.12), transparent 60%),
-      radial-gradient(60% 45% at 15% 88%, rgba(244,114,182,.1), transparent 60%),
-      radial-gradient(120% 80% at 50% 120%, rgba(251,191,36,.05), transparent 55%); }
+      radial-gradient(70% 50% at 78% 8%, rgba(99,102,241,.12), transparent 60%),
+      radial-gradient(60% 45% at 15% 88%, rgba(56,189,248,.1), transparent 60%),
+      radial-gradient(120% 80% at 50% 120%, rgba(252,211,77,.05), transparent 55%); }
   .grain { position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .04; mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
   body.paused .grain { display: none; }
   .progress { position: fixed; top: 0; left: 0; height: 2px; width: 100%; z-index: 95; transform-origin: 0 50%; transform: scaleX(var(--sc));
-    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--magenta), var(--gold)); box-shadow: 0 0 14px rgba(244,114,182,.6); }
+    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--magenta), var(--gold)); box-shadow: 0 0 14px rgba(56,189,248,.6); }
 
   /* ── nav ──────────────────────────────────────────── */
   .nav { position: fixed; inset: 0 0 auto 0; z-index: 80; display: flex; align-items: center; justify-content: space-between;
     padding: 1rem clamp(1rem, 4vw, 2.4rem); }
   .nav::before { content: ""; position: absolute; inset: 0; z-index: -1; backdrop-filter: blur(12px);
-    background: linear-gradient(180deg, rgba(8,6,15,.7), transparent); mask-image: linear-gradient(180deg, #000 40%, transparent); }
+    background: linear-gradient(180deg, rgba(7,11,22,.7), transparent); mask-image: linear-gradient(180deg, #000 40%, transparent); }
   .brand { font-family: var(--disp); font-weight: 600; font-size: .92rem; letter-spacing: .02em; color: var(--ink); display: flex; align-items: center; gap: .6rem; }
-  .brand .orb { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--pink), var(--violet-d) 70%); box-shadow: 0 0 14px rgba(244,114,182,.7); }
+  .brand .orb { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--pink), var(--violet-d) 70%); box-shadow: 0 0 14px rgba(56,189,248,.7); }
   .nav-right { display: flex; align-items: center; gap: 1.4rem; }
   .nav-links { display: flex; gap: 1.3rem; }
   .nav-links a { font-family: var(--mono); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); transition: color .25s; }
@@ -97,19 +97,19 @@
   .hero .eyebrow { font-family: var(--mono); font-size: .74rem; letter-spacing: .34em; text-transform: uppercase; color: var(--violet); margin-bottom: 1.6rem; opacity: 0; }
   .hero h1 { font-size: clamp(2.8rem, 9vw, 6.4rem); font-weight: 700; letter-spacing: -0.04em; line-height: .96; }
   .hero h1 .l { display: block; opacity: 0; }
-  .hero h1 .grad { background: linear-gradient(100deg, var(--cyan), var(--violet) 35%, var(--magenta) 70%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero h1 .grad { background: linear-gradient(100deg, #2dd4bf, #38bdf8 40%, #818cf8 72%, #fcd34d); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .hero .lede { margin-top: 1.8rem; max-width: 34rem; font-size: 1.06rem; color: var(--text); opacity: 0; }
   .hero .lede b { color: var(--ink); font-weight: 500; }
   .hero .cta { margin-top: 2.2rem; display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center; opacity: 0; }
   .btn { font-family: var(--sans); font-weight: 500; font-size: .92rem; padding: .82rem 1.5rem; border-radius: 100px; display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
     transition: transform .25s, box-shadow .25s, border-color .25s, color .25s, background .25s; }
-  .btn.primary { color: #1a0616; font-weight: 600; background: linear-gradient(100deg, var(--pink), var(--gold)); box-shadow: 0 10px 40px -8px rgba(244,114,182,.6); }
-  .btn.primary:hover { transform: translateY(-3px); box-shadow: 0 18px 55px -10px rgba(244,114,182,.8); }
+  .btn.primary { color: #1a0616; font-weight: 600; background: linear-gradient(100deg, #22d3ee, #38bdf8); box-shadow: 0 10px 40px -8px rgba(56,189,248,.6); }
+  .btn.primary:hover { transform: translateY(-3px); box-shadow: 0 18px 55px -10px rgba(56,189,248,.8); }
   .btn.ghost { color: var(--text); border: 1px solid var(--border); background: rgba(24,16,42,.4); backdrop-filter: blur(6px); }
   .btn.ghost:hover { border-color: var(--border-hi); color: var(--magenta); transform: translateY(-3px); }
   .hero .stats { margin-top: 3.4rem; display: flex; flex-wrap: wrap; gap: 2.4rem; justify-content: center; opacity: 0; }
   .hero .stat .v { font-family: var(--disp); font-size: 1.8rem; font-weight: 700; color: var(--ink); }
-  .hero .stat .v.ok { background: linear-gradient(100deg, var(--pink), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .stat .v.ok { background: linear-gradient(100deg, #22d3ee, #38bdf8); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .hero .stat .k { font-family: var(--mono); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-top: .3rem; }
   .scroll-cue { position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: var(--faint); display: flex; flex-direction: column; align-items: center; gap: .5rem; opacity: 0; }
   .scroll-cue .ln { width: 1px; height: 34px; background: linear-gradient(var(--magenta), transparent); animation: cue 2.4s ease-in-out infinite; }
@@ -131,7 +131,7 @@
   .layer .meta { margin-top: 1.3rem; font-family: var(--mono); font-size: .74rem; color: var(--muted); border-left: 2px solid var(--accent); padding-left: .9rem; line-height: 1.7; }
   .descent-hint { position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: .6rem; letter-spacing: .28em; text-transform: uppercase; color: var(--faint); }
   .js .descent:not(.flat) .descent-stage::before { content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(58% 62% at 42% 52%, rgba(8,6,15,.6), transparent 72%); }
+    background: radial-gradient(58% 62% at 42% 52%, rgba(7,11,22,.6), transparent 72%); }
   .js .descent:not(.flat) .layers-overlay { z-index: 1; }
   .js .descent:not(.flat) .layer { transition: opacity .55s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
   .js .descent:not(.flat) .layer.active { opacity: 1; transform: none; pointer-events: auto; }
@@ -153,14 +153,14 @@
     backdrop-filter: blur(10px); overflow: hidden; transition: transform .35s cubic-bezier(.2,.7,.2,1), border-color .35s, box-shadow .35s; }
   .card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent, var(--violet)), transparent); opacity: .55; }
   .card::after { content: ""; position: absolute; inset: 0; border-radius: var(--r); pointer-events: none;
-    background: radial-gradient(340px 200px at var(--mx,50%) var(--my,-10%), rgba(244,114,182,.1), transparent 70%); opacity: 0; transition: opacity .35s; }
+    background: radial-gradient(340px 200px at var(--mx,50%) var(--my,-10%), rgba(56,189,248,.1), transparent 70%); opacity: 0; transition: opacity .35s; }
   .card:hover { transform: translateY(-4px); border-color: var(--border-hi); box-shadow: 0 30px 60px -30px rgba(0,0,0,.9); }
   .card:hover::after { opacity: 1; }
   .card h4 { font-size: 1rem; margin-bottom: .5rem; display: flex; align-items: center; gap: .55rem; }
   .card p { font-size: .88rem; color: var(--muted); }
   .card p b { color: var(--text); font-weight: 500; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--violet)); box-shadow: 0 0 10px var(--accent, var(--violet)); flex: none; }
-  code { font-family: var(--mono); font-size: .82em; color: var(--gold); background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.18); border-radius: 5px; padding: .06em .4em; }
+  code { font-family: var(--mono); font-size: .82em; color: var(--gold); background: rgba(252,211,77,.08); border: 1px solid rgba(252,211,77,.18); border-radius: 5px; padding: .06em .4em; }
   .chip { margin-left: auto; font-family: var(--mono); font-size: .56rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent, var(--gold));
     border: 1px solid currentColor; border-radius: 100px; padding: .2rem .5rem; white-space: nowrap; opacity: .85; }
 
@@ -183,7 +183,7 @@
   th { font-family: var(--mono); font-size: .62rem; text-transform: uppercase; letter-spacing: .12em; color: var(--violet); font-weight: 400; }
   tr:last-child td { border-bottom: none; }
   td:first-child { color: var(--muted); font-family: var(--mono); font-size: .78rem; white-space: nowrap; }
-  tbody tr { transition: background .25s; } tbody tr:hover { background: rgba(167,139,250,.06); }
+  tbody tr { transition: background .25s; } tbody tr:hover { background: rgba(129,140,248,.06); }
 
   footer { margin-top: clamp(5rem, 10vw, 8rem); border-top: 1px solid var(--border); padding: 2.4rem 0 3.4rem; position: relative; z-index: 2; }
   footer .shell { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; color: var(--muted); font-family: var(--mono); font-size: .72rem; }
@@ -253,37 +253,37 @@
   <div class="descent-stage">
     <div class="layer-counter"><span id="layer-num">01</span> <span style="color:var(--faint)">/ 06 · defense in depth</span></div>
     <div class="layers-overlay">
-      <article class="layer" data-i="0" style="--accent:#67e8f9">
+      <article class="layer" data-i="0" style="--accent:#2dd4bf">
         <div class="lnum">01 — the edge</div>
         <h3>The internet <span class="a">stops here.</span></h3>
         <p class="desc">No ports are forwarded on the router and nothing binds to a public interface. There is no listening service for a scanner or bot to find — the usual first move of an attack, "find an open port", has nothing to land on.</p>
         <div class="meta">router: 0 inbound forwards<br>nmap from the WAN: no open ports<br>attack surface: none exposed</div>
       </article>
-      <article class="layer" data-i="1" style="--accent:#a78bfa">
+      <article class="layer" data-i="1" style="--accent:#22d3ee">
         <div class="lnum">02 — wireguard mesh</div>
         <h3>The only <span class="a">way in.</span></h3>
         <p class="desc">Tailscale builds a private WireGuard mesh where every device authenticates with its own key — no shared password, no public endpoint. Access is identity-based per device: revoking one key cuts that device off instantly without touching anything else, and traffic is end-to-end encrypted.</p>
         <div class="meta">tailscale · per-device keys<br>ingress: VPN-only<br>revocable, identity-based access</div>
       </article>
-      <article class="layer" data-i="2" style="--accent:#c084fc">
+      <article class="layer" data-i="2" style="--accent:#38bdf8">
         <div class="lnum">03 — tailscale serve</div>
         <h3>TLS on the <span class="a">tailnet.</span></h3>
         <p class="desc">Tailscale Serve terminates HTTPS on the tailnet interface and reverse-proxies to services bound to <code>127.0.0.1</code> — nothing listens on a public-facing wildcard address. Certificates for the tailnet hostname are issued and renewed automatically, so every service is reachable over HTTPS without exposing a port or hand-managing certs.</p>
         <div class="meta">https → 127.0.0.1<br>no wildcard binds<br>auto-issued & renewed TLS</div>
       </article>
-      <article class="layer" data-i="3" style="--accent:#f472b6">
+      <article class="layer" data-i="3" style="--accent:#60a5fa">
         <div class="lnum">04 — ufw host firewall</div>
         <h3>An independent <span class="a">second layer.</span></h3>
         <p class="desc">UFW allow-lists each Docker subnet to only the specific ports it needs, scoped independently of the VPN. Every rule names a source subnet and a destination port, so a service can only be reached by the containers that legitimately need it — e.g. only the monitoring subnet may hit an app's metrics port. If the VPN ever failed open, services still would not be exposed.</p>
         <div class="meta">per-subnet allow-lists<br>least-privilege network paths<br>defense in depth, not "the VPN handles it"</div>
       </article>
-      <article class="layer" data-i="4" style="--accent:#fb7185">
+      <article class="layer" data-i="4" style="--accent:#818cf8">
         <div class="lnum">05 — segmented networks</div>
         <h3>No flat <span class="a">wire.</span></h3>
         <p class="desc">Services are split across isolated Docker bridge networks — a monitoring net, a reverse-proxy net — instead of one flat network where everything can talk to everything. A container only joins the networks it actually needs, so a compromise stays boxed inside its own segment with no lateral path to unrelated services.</p>
         <div class="meta">isolated bridges<br>no lateral movement by default<br>contained blast radius</div>
       </article>
-      <article class="layer" data-i="5" style="--accent:#fbbf24">
+      <article class="layer" data-i="5" style="--accent:#fcd34d">
         <div class="lnum">06 — the hardened core</div>
         <h3>Least <span class="a">privilege.</span></h3>
         <p class="desc">Every container starts from zero Linux capabilities — <code>cap_drop: ALL</code> — and gets back only the few it genuinely needs. <code>no-new-privileges</code> blocks escalation, processes run as an unprivileged user, and root filesystems are read-only where the image supports it. Even a full app compromise stays boxed in a low-privilege, mostly read-only container.</p>
