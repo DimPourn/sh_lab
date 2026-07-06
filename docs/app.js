@@ -38,7 +38,7 @@ if (!flyMode && descentEl) descentEl.classList.add('flat');
 if (reduced) body.classList.add('no-anim');
 
 /* layer accent colors (match --accent in HTML) */
-const LAYER_COL = ['#67e8f9', '#a78bfa', '#c084fc', '#f472b6', '#fb7185', '#fbbf24'];
+const LAYER_COL = ['#2dd4bf', '#22d3ee', '#38bdf8', '#60a5fa', '#818cf8', '#fcd34d'];
 const N = 6, SPACING = 20;
 const GATE_Z = i => -i * SPACING;
 const CORE_Z = GATE_Z(N - 1) - 30; // -130
@@ -82,12 +82,12 @@ const Scene = (() => {
     renderer.setPixelRatio(DPR);
     renderer.setClearColor(0x000000, 0);
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x08060f, 0.012);
+    scene.fog = new THREE.FogExp2(0x070b16, 0.012);
     camera = new THREE.PerspectiveCamera(62, 1, 0.1, 400);
 
     // starfield / dust
     const SN = isMobile ? 900 : 1800, sp = [], scl = [];
-    const cA = new THREE.Color('#a78bfa'), cB = new THREE.Color('#f472b6'), tmp = new THREE.Color();
+    const cA = new THREE.Color('#818cf8'), cB = new THREE.Color('#22d3ee'), tmp = new THREE.Color();
     for (let i = 0; i < SN; i++) {
       sp.push((Math.random() - 0.5) * 90, (Math.random() - 0.5) * 60, 20 - Math.random() * 160);
       tmp.copy(cA).lerp(cB, Math.random());
@@ -100,7 +100,7 @@ const Scene = (() => {
     scene.add(stars);
 
     // nebula clouds
-    const nebColors = ['#8b5cf6', '#f472b6', '#fbbf24', '#67e8f9'];
+    const nebColors = ['#6366f1', '#38bdf8', '#2dd4bf', '#818cf8'];
     for (let i = 0; i < (isMobile ? 4 : 7); i++) {
       const m = new THREE.SpriteMaterial({ map: GLOWS, color: new THREE.Color(nebColors[i % nebColors.length]), transparent: true, opacity: 0.14, depthWrite: false, blending: THREE.AdditiveBlending });
       const s = new THREE.Sprite(m);
@@ -135,7 +135,7 @@ const Scene = (() => {
     // core
     core = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOWS, color: new THREE.Color('#fff3d6'), transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending }));
     core.position.set(0, 0, CORE_Z); core.scale.setScalar(7); scene.add(core);
-    coreHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOWS, color: new THREE.Color('#fbbf24'), transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
+    coreHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOWS, color: new THREE.Color('#fcd34d'), transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
     coreHalo.position.set(0, 0, CORE_Z); coreHalo.scale.setScalar(18); scene.add(coreHalo);
 
     resize();
