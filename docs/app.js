@@ -1,8 +1,8 @@
 /* ============================================================================
-   Pi 5 Homelab — bento control-room
-   Three.js WebGL rendered INSIDE bento tiles (network mesh + exploded
-   defense-in-depth) + GSAP ScrollTrigger for tile choreography.
-   Self-contained (libraries vendored under ./vendor/). Degrades gracefully.
+   Descent — cinematic scroll-driven flythrough through the defense layers.
+   Fixed full-viewport Three.js scene; scroll flies the camera through six
+   glowing gates toward the hardened core. Self-contained (./vendor/).
+   Degrades to a stacked layer list on mobile / reduced-motion / no-WebGL.
    ========================================================================== */
 import * as THREE from 'three';
 
@@ -18,367 +18,276 @@ if (hasGsap) gsap.registerPlugin(ScrollTrigger);
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const finePointer = window.matchMedia('(pointer:fine)').matches;
-const isMobile = window.matchMedia('(max-width: 720px)').matches;
-const DPR = Math.min(window.devicePixelRatio || 1, isMobile ? 1.75 : 2);
-let animate = !reduced;
-if (reduced) body.classList.add('no-anim');
-
-function webglOK() {
-  try {
-    const c = doc.createElement('canvas');
-    return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')));
-  } catch (e) { return false; }
-}
-const WEBGL = webglOK();
+const isMobile = window.matchMedia('(max-width: 820px)').matches;
+const DPR = Math.min(window.devicePixelRatio || 1, isMobile ? 1.6 : 2);
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
-const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 
-/* palette — security blue + protected green */
-const COL = {
-  green:  new THREE.Color('#34d399'),
-  blue:   new THREE.Color('#38b7f8'),
-  amber:  new THREE.Color('#fbbf24'),
-  purple: new THREE.Color('#a78bfa'),
-  teal:   new THREE.Color('#22d3ee'),
-};
-const LAYER_COLORS = [COL.green, COL.blue, COL.amber, COL.purple, COL.teal];
+function webglOK() {
+  try { const c = doc.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); }
+  catch (e) { return false; }
+}
+const WEBGL = webglOK();
 
-function glowTexture() {
-  const s = 128, c = doc.createElement('canvas');
-  c.width = c.height = s;
+/* fly mode = full pinned flythrough; otherwise flat stacked layers */
+const flyMode = hasGsap && WEBGL && !reduced && !isMobile;
+const descentEl = doc.getElementById('descent');
+if (!flyMode && descentEl) descentEl.classList.add('flat');
+if (reduced) body.classList.add('no-anim');
+
+/* layer accent colors (match --accent in HTML) */
+const LAYER_COL = ['#67e8f9', '#a78bfa', '#c084fc', '#f472b6', '#fb7185', '#fbbf24'];
+const N = 6, SPACING = 20;
+const GATE_Z = i => -i * SPACING;
+const CORE_Z = GATE_Z(N - 1) - 30; // -130
+const CAM_START = 16, CAM_END = GATE_Z(N - 1) - 8;       // +16 → -108
+
+/* shared pointer parallax */
+const ptr = { x: 0, y: 0 };
+if (finePointer) window.addEventListener('pointermove', (e) => {
+  ptr.x = (e.clientX / window.innerWidth - 0.5) * 2;
+  ptr.y = (e.clientY / window.innerHeight - 0.5) * 2;
+}, { passive: true });
+
+function glowTexture(inner) {
+  const s = 128, c = doc.createElement('canvas'); c.width = c.height = s;
   const g = c.getContext('2d');
   const grd = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-  grd.addColorStop(0.0, 'rgba(255,255,255,1)');
-  grd.addColorStop(0.25, 'rgba(255,255,255,0.85)');
-  grd.addColorStop(0.55, 'rgba(255,255,255,0.22)');
-  grd.addColorStop(1.0, 'rgba(255,255,255,0)');
+  grd.addColorStop(0, 'rgba(255,255,255,1)');
+  grd.addColorStop(inner || 0.25, 'rgba(255,255,255,0.85)');
+  grd.addColorStop(0.55, 'rgba(255,255,255,0.2)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grd; g.fillRect(0, 0, s, s);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-const GLOW = WEBGL ? glowTexture() : null;
-
-/* shared pointer (normalised -1..1) */
-const ptr = { x: 0, y: 0 };
-if (finePointer) {
-  window.addEventListener('pointermove', (e) => {
-    ptr.x = (e.clientX / window.innerWidth - 0.5) * 2;
-    ptr.y = (e.clientY / window.innerHeight - 0.5) * 2;
-  }, { passive: true });
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   NETWORK MESH — rendered inside the hero tile
+   SCENE
    ══════════════════════════════════════════════════════════════════════ */
-const MeshScene = (() => {
-  const canvas = doc.getElementById('mesh-canvas');
-  if (!canvas || !WEBGL) return null;
+const Scene = (() => {
+  const canvas = doc.getElementById('scene');
+  if (!canvas || !WEBGL) { if (canvas) canvas.style.display = 'none'; return null; }
 
-  let renderer, scene, camera, globe, points, lines, pulseGeo;
-  let W = 0, H = 0, visible = true, intro = 0;
-  const pulses = [];
-  const R = 10;
-  const N = isMobile ? 220 : 460;
-  const cur = { x: 0, y: 0 };
+  let renderer, scene, camera, W = 0, H = 0, visible = true;
+  const GLOW = glowTexture(0.28), GLOWS = glowTexture(0.5);
+  const gates = [], nebulae = [];
+  let stars, core, coreHalo;
+  let flight = 0, targetFlight = 0;
+  const camPos = new THREE.Vector3(0, 0, CAM_START);
 
   function init() {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: true, powerPreference: 'high-performance' });
     renderer.setPixelRatio(DPR);
     renderer.setClearColor(0x000000, 0);
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x070d17, 0.03);
-    camera = new THREE.PerspectiveCamera(44, 1, 0.1, 200);
-    camera.position.set(0, 0, 30);
+    scene.fog = new THREE.FogExp2(0x08060f, 0.012);
+    camera = new THREE.PerspectiveCamera(62, 1, 0.1, 400);
 
-    globe = new THREE.Group();
-    scene.add(globe);
-
-    const pos = [], col = [], nodes = [];
-    const inc = Math.PI * (3 - Math.sqrt(5));
-    for (let i = 0; i < N; i++) {
-      const y = 1 - (i / (N - 1)) * 2;
-      const r = Math.sqrt(Math.max(0, 1 - y * y));
-      const phi = i * inc;
-      const v = new THREE.Vector3(Math.cos(phi) * r, y, Math.sin(phi) * r).multiplyScalar(R);
-      nodes.push(v); pos.push(v.x, v.y, v.z);
-      const c = COL.green.clone().lerp(COL.blue, (y + 1) / 2);
-      col.push(c.r, c.g, c.b);
+    // starfield / dust
+    const SN = isMobile ? 900 : 1800, sp = [], scl = [];
+    const cA = new THREE.Color('#a78bfa'), cB = new THREE.Color('#f472b6'), tmp = new THREE.Color();
+    for (let i = 0; i < SN; i++) {
+      sp.push((Math.random() - 0.5) * 90, (Math.random() - 0.5) * 60, 20 - Math.random() * 160);
+      tmp.copy(cA).lerp(cB, Math.random());
+      scl.push(tmp.r, tmp.g, tmp.b);
     }
-    const pGeo = new THREE.BufferGeometry();
-    pGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    pGeo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-    points = new THREE.Points(pGeo, new THREE.PointsMaterial({
-      size: isMobile ? 0.72 : 0.6, map: GLOW, vertexColors: true, transparent: true,
-      depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, opacity: 0.95,
-    }));
-    globe.add(points);
+    const sg = new THREE.BufferGeometry();
+    sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+    sg.setAttribute('color', new THREE.Float32BufferAttribute(scl, 3));
+    stars = new THREE.Points(sg, new THREE.PointsMaterial({ size: 0.5, map: GLOW, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, opacity: 0.9 }));
+    scene.add(stars);
 
-    const lpos = [], lcol = [], edges = [], K = 3;
-    for (let i = 0; i < N; i++) {
-      const d = [];
-      for (let j = 0; j < N; j++) if (j !== i) d.push([nodes[i].distanceToSquared(nodes[j]), j]);
-      d.sort((a, b) => a[0] - b[0]);
-      for (let k = 0; k < K; k++) {
-        const j = d[k][1];
-        if (i < j) {
-          edges.push([i, j]);
-          const a = nodes[i], b = nodes[j];
-          lpos.push(a.x, a.y, a.z, b.x, b.y, b.z);
-          const ca = COL.blue.clone().multiplyScalar(0.55);
-          lcol.push(ca.r, ca.g, ca.b, ca.r, ca.g, ca.b);
-        }
-      }
+    // nebula clouds
+    const nebColors = ['#8b5cf6', '#f472b6', '#fbbf24', '#67e8f9'];
+    for (let i = 0; i < (isMobile ? 4 : 7); i++) {
+      const m = new THREE.SpriteMaterial({ map: GLOWS, color: new THREE.Color(nebColors[i % nebColors.length]), transparent: true, opacity: 0.14, depthWrite: false, blending: THREE.AdditiveBlending });
+      const s = new THREE.Sprite(m);
+      s.position.set((Math.random() - 0.5) * 60, (Math.random() - 0.5) * 36, 10 - Math.random() * 130);
+      const sc = 26 + Math.random() * 30; s.scale.setScalar(sc);
+      scene.add(s); nebulae.push({ s, base: sc, ph: Math.random() * 6.28 });
     }
-    const lGeo = new THREE.BufferGeometry();
-    lGeo.setAttribute('position', new THREE.Float32BufferAttribute(lpos, 3));
-    lGeo.setAttribute('color', new THREE.Float32BufferAttribute(lcol, 3));
-    lines = new THREE.LineSegments(lGeo, new THREE.LineBasicMaterial({
-      vertexColors: true, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false,
-    }));
-    globe.add(lines);
 
-    const M = isMobile ? 9 : 16;
-    pulseGeo = new THREE.BufferGeometry();
-    pulseGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(M * 3), 3));
-    for (let i = 0; i < M; i++) pulses.push({ e: (Math.random() * edges.length) | 0, t: Math.random(), sp: 0.004 + Math.random() * 0.006 });
-    globe.add(new THREE.Points(pulseGeo, new THREE.PointsMaterial({
-      size: isMobile ? 1.3 : 1.0, map: GLOW, color: COL.green, transparent: true,
-      depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
-    })));
-    pulses.nodes = nodes; pulses.edges = edges;
+    // gates
+    const ringGeo = new THREE.TorusGeometry(6.4, 0.14, 12, 90);
+    const ring2Geo = new THREE.TorusGeometry(7.4, 0.05, 8, 90);
+    for (let i = 0; i < N; i++) {
+      const col = new THREE.Color(LAYER_COL[i]);
+      const grp = new THREE.Group(); grp.position.z = GATE_Z(i);
+      const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+      grp.add(ring);
+      const ring2 = new THREE.Mesh(ring2Geo, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+      grp.add(ring2);
+      // particle ring
+      const PN = isMobile ? 60 : 120, pp = [];
+      for (let k = 0; k < PN; k++) { const a = (k / PN) * Math.PI * 2, r = 6.4 + (Math.random() - 0.5) * 1.4; pp.push(Math.cos(a) * r, Math.sin(a) * r, (Math.random() - 0.5) * 1.2); }
+      const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pp, 3));
+      const pts = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.5, map: GLOW, color: col, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+      grp.add(pts);
+      // faint disc
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(6.2, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+      grp.add(disc);
+      scene.add(grp);
+      gates.push({ grp, ring, ring2, pts, disc, col, z: GATE_Z(i), rot: Math.random() * 6.28 });
+    }
+
+    // core
+    core = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOWS, color: new THREE.Color('#fff3d6'), transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending }));
+    core.position.set(0, 0, CORE_Z); core.scale.setScalar(7); scene.add(core);
+    coreHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOWS, color: new THREE.Color('#fbbf24'), transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
+    coreHalo.position.set(0, 0, CORE_Z); coreHalo.scale.setScalar(18); scene.add(coreHalo);
 
     resize();
-    if (animate && hasGsap) gsap.to({ v: 0 }, { v: 1, duration: 1.8, ease: 'expo.out', delay: 0.2, onUpdate: function () { intro = this.targets()[0].v; } });
-    else intro = 1;
+    setFlight(0, true);
   }
 
   function resize() {
-    W = canvas.clientWidth; H = canvas.clientHeight;
-    if (W < 2 || H < 2) return;
+    W = canvas.clientWidth || window.innerWidth; H = canvas.clientHeight || window.innerHeight;
     renderer.setSize(W, H, false);
     camera.aspect = W / H; camera.updateProjectionMatrix();
-    // pull camera back a touch on portrait tiles so the globe always fits
-    camera.position.z = 30 * clamp(1.15 - (W / H) * 0.12, 0.85, 1.25);
   }
 
-  function frame(time) {
-    if (!visible || W < 2) return;
-    const e = easeInOut(clamp(intro, 0, 1));
-    cur.x = lerp(cur.x, ptr.y * 0.28, 0.05);
-    cur.y = lerp(cur.y, ptr.x * 0.42, 0.05);
-    globe.rotation.y = (animate ? time * 0.00009 : 0) + cur.y - 0.2;
-    globe.rotation.x = -0.18 + cur.x;
-    globe.scale.setScalar(lerp(0.55, 1, e));
-    points.material.opacity = 0.95 * e;
-    lines.material.opacity = 0.32 * e;
+  const layerEls = Array.prototype.slice.call(doc.querySelectorAll('.descent .layer'));
+  const numEl = doc.getElementById('layer-num');
+  let activeShown = -1;
 
-    if (animate) {
-      const arr = pulseGeo.attributes.position.array, nd = pulses.nodes, el = pulses.edges;
-      for (let i = 0; i < pulses.length; i++) {
-        const pu = pulses[i]; pu.t += pu.sp;
-        if (pu.t > 1) { pu.t = 0; pu.e = (Math.random() * el.length) | 0; }
-        const a = nd[el[pu.e][0]], b = nd[el[pu.e][1]];
-        arr[i * 3] = lerp(a.x, b.x, pu.t); arr[i * 3 + 1] = lerp(a.y, b.y, pu.t); arr[i * 3 + 2] = lerp(a.z, b.z, pu.t);
-      }
-      pulseGeo.attributes.position.needsUpdate = true;
+  function updateCards(p) {
+    const ai = clamp(Math.floor(p * N - 0.0001), 0, N - 1);
+    if (ai !== activeShown) {
+      activeShown = ai;
+      layerEls.forEach((el, i) => el.classList.toggle('active', i === ai));
+      if (numEl) numEl.textContent = String(ai + 1).padStart(2, '0');
     }
+  }
+
+  function setFlight(p, immediate) {
+    targetFlight = clamp(p, 0, 1);
+    if (immediate) flight = targetFlight;
+    if (flyMode) updateCards(targetFlight);
+  }
+
+  function render(time) {
+    if (!visible || W < 2) return;
+    flight = lerp(flight, targetFlight, 0.1);
+    const e = smooth(flight);
+    const camZ = lerp(CAM_START, CAM_END, e);
+    camPos.z = camZ;
+    camera.position.set(camPos.x + ptr.x * 1.6, camPos.y - ptr.y * 1.1, camZ);
+    camera.lookAt(ptr.x * 1.2, -ptr.y * 0.8, camZ - 20);
+    camera.rotation.z = Math.sin(time * 0.0002) * 0.02 + ptr.x * 0.02;
+
+    // gates
+    for (let i = 0; i < gates.length; i++) {
+      const g = gates[i], a = camZ - g.z;      // >0 ahead, ~0 at gate, <0 passed
+      let op;
+      if (a < 0) op = clamp(1 + a / 7, 0, 1);
+      else op = clamp(1 - (a - 7) / 46, 0.12, 1);
+      const near = clamp(1 - Math.abs(a) / 13, 0, 1);
+      g.rot += 0.0016 + near * 0.004;
+      g.grp.rotation.z = g.rot;
+      g.ring.material.opacity = 0.9 * op;
+      g.ring2.material.opacity = (0.28 + near * 0.5) * op;
+      g.pts.material.opacity = 0.8 * op;
+      g.disc.material.opacity = (0.04 + near * 0.14) * op;
+      const sc = 1 + near * 0.22;
+      g.grp.scale.set(sc, sc, 1);
+    }
+
+    // core pulse + approach glow
+    const coreNear = clamp(1 - Math.abs(camZ - CORE_Z) / 64, 0, 1);
+    const pulse = 1 + Math.sin(time * 0.0016) * 0.06;
+    core.scale.setScalar((5 + coreNear * 4.5) * pulse);
+    core.material.opacity = 0.45 + coreNear * 0.28;
+    coreHalo.scale.setScalar((15 + coreNear * 15) * pulse);
+    coreHalo.material.opacity = 0.2 + coreNear * 0.28;
+
+    // nebula drift
+    for (const n of nebulae) { n.s.scale.setScalar(n.base * (1 + Math.sin(time * 0.0004 + n.ph) * 0.08)); }
+    // star parallax
+    stars.rotation.z = time * 0.000015;
+
     renderer.render(scene, camera);
   }
 
   function setVisible(v) { visible = v; }
   init();
-
   if (window.ResizeObserver) new ResizeObserver(() => resize()).observe(canvas);
-  if (window.IntersectionObserver) new IntersectionObserver((es) => es.forEach((x) => setVisible(x.isIntersecting)), { threshold: 0.01 }).observe(canvas);
-
-  return { frame, resize, setVisible };
-})();
-
-/* ════════════════════════════════════════════════════════════════════════
-   DEFENSE IN DEPTH — exploded 5-layer stack inside its tile
-   ══════════════════════════════════════════════════════════════════════ */
-const StackScene = (() => {
-  const canvas = doc.getElementById('stack-canvas');
-  if (!canvas || !WEBGL) return null;
-
-  let renderer, scene, camera, group, W = 0, H = 0, visible = true;
-  const planes = [], connectors = [];
-  let progress = 0, activeIdx = 0;
-  const SEP_MIN = 0.9, SEP_MAX = 6.6, PW = 9, PD = 6;
-  const layerEls = Array.prototype.slice.call(doc.querySelectorAll('.layers li'));
-  const cornerLocal = [[-PW / 2, -PD / 2], [PW / 2, -PD / 2], [PW / 2, PD / 2], [-PW / 2, PD / 2]];
-
-  function init() {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(DPR);
-    renderer.setClearColor(0x000000, 0);
-    scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x070d17, 0.022);
-    camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
-    group = new THREE.Group();
-    scene.add(group);
-
-    const planeGeo = new THREE.PlaneGeometry(PW, PD).rotateX(-Math.PI / 2);
-    const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(PW, 0.001, PD));
-
-    for (let L = 0; L < 5; L++) {
-      const grp = new THREE.Group();
-      const color = LAYER_COLORS[L];
-      const fill = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({
-        color, transparent: true, opacity: 0.1, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false,
-      }));
-      grp.add(fill);
-      const edge = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({
-        color, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false,
-      }));
-      grp.add(edge);
-      const grid = new THREE.GridHelper(PW, 9, color, color);
-      grid.scale.z = PD / PW;
-      grid.material.transparent = true; grid.material.opacity = 0.12; grid.material.blending = THREE.AdditiveBlending; grid.material.depthWrite = false;
-      grp.add(grid);
-      const cGeo = new THREE.BufferGeometry();
-      cGeo.setAttribute('position', new THREE.Float32BufferAttribute([-PW / 2, 0, -PD / 2, PW / 2, 0, -PD / 2, PW / 2, 0, PD / 2, -PW / 2, 0, PD / 2], 3));
-      const dots = new THREE.Points(cGeo, new THREE.PointsMaterial({
-        size: 0.8, map: GLOW, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, opacity: 0.9,
-      }));
-      grp.add(dots);
-      group.add(grp);
-      planes.push({ grp, fill, edge, grid, dots, baseY: (L - 2) });
-    }
-    for (let c = 0; c < 4; c++) {
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(5 * 3), 3));
-      const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x4a6f96, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }));
-      group.add(line); connectors.push(line);
-    }
-    resize(); setProgress(0);
-  }
-
-  function resize() {
-    W = canvas.clientWidth; H = canvas.clientHeight;
-    if (W < 2 || H < 2) return;
-    renderer.setSize(W, H, false);
-    camera.aspect = W / H; camera.updateProjectionMatrix();
-  }
-
-  function setProgress(p) {
-    progress = clamp(p, 0, 1);
-    const e = easeInOut(progress);
-    const sep = lerp(SEP_MIN, SEP_MAX, e);
-    activeIdx = clamp(Math.floor(progress * 4.999), 0, 4);
-    for (let L = 0; L < 5; L++) {
-      const pl = planes[L], isA = L === activeIdx;
-      pl.grp.position.y = pl.baseY * sep;
-      pl.fill.material.opacity = isA ? 0.26 : 0.09;
-      pl.edge.material.opacity = isA ? 1.0 : 0.5;
-      pl.grid.material.opacity = isA ? 0.22 : 0.1;
-      pl.dots.material.opacity = isA ? 1.0 : 0.6;
-      const s = isA ? 1.035 : 1.0; pl.grp.scale.set(s, 1, s);
-    }
-    for (let c = 0; c < 4; c++) {
-      const arr = connectors[c].geometry.attributes.position.array;
-      for (let L = 0; L < 5; L++) { arr[L * 3] = cornerLocal[c][0]; arr[L * 3 + 1] = planes[L].baseY * sep; arr[L * 3 + 2] = cornerLocal[c][1]; }
-      connectors[c].geometry.attributes.position.needsUpdate = true;
-      connectors[c].material.opacity = lerp(0.28, 0.14, e);
-    }
-    const ang = lerp(-0.35, 0.72, e), dist = lerp(18, 25, e), camY = lerp(3.2, 9, e);
-    camera.position.set(Math.sin(ang) * dist, camY, Math.cos(ang) * dist);
-    camera.lookAt(0, 0, 0);
-    group.rotation.y = lerp(0, 0.1, e);
-    if (layerEls.length) layerEls.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
-  }
-
-  function frame() {
-    if (!visible || W < 2) return;
-    if (animate) group.rotation.x = lerp(group.rotation.x || 0, ptr.x * 0.08, 0.05);
-    renderer.render(scene, camera);
-  }
-  function setVisible(v) { visible = v; }
-
-  init();
-  if (window.ResizeObserver) new ResizeObserver(() => { resize(); if (paused) renderOnce(); }).observe(canvas);
-  return { frame, resize, setProgress, setVisible };
+  doc.addEventListener('visibilitychange', () => setVisible(!doc.hidden));
+  return { render, resize, setFlight, setVisible, get flight() { return targetFlight; } };
 })();
 
 /* ════════════════════════════════════════════════════════════════════════
    RENDER LOOP
    ══════════════════════════════════════════════════════════════════════ */
 let paused = reduced;
-function renderOnce(t) {
-  if (MeshScene) MeshScene.frame(t || performance.now());
-  if (StackScene) StackScene.frame();
+let ambientT = 0;
+function tick(t) {
+  if (Scene) {
+    // in flat/ambient mode (not fly, not reduced), gently auto-descend & loop
+    if (!flyMode && !reduced) { ambientT += 0.0009; Scene.setFlight(0.28 + Math.sin(ambientT) * 0.22); }
+    Scene.render(t);
+  }
+  if (!paused) requestAnimationFrame(tick);
 }
-function loop(t) { renderOnce(t); if (!paused && animate) requestAnimationFrame(loop); }
-if (animate) requestAnimationFrame(loop); else renderOnce(0);
-function nudge() { if (paused || !animate) renderOnce(performance.now()); }
+if (!reduced) requestAnimationFrame(tick);
+else if (Scene) Scene.render(0);
 
-/* resize */
 let rz;
-window.addEventListener('resize', () => {
-  clearTimeout(rz);
-  rz = setTimeout(() => {
-    if (MeshScene) MeshScene.resize();
-    if (StackScene) StackScene.resize();
-    if (hasGsap) ScrollTrigger.refresh();
-    nudge();
-  }, 150);
-}, { passive: true });
+window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (Scene) Scene.resize(); if (hasGsap) ScrollTrigger.refresh(); if (paused) Scene && Scene.render(performance.now()); }, 150); }, { passive: true });
 
 /* ════════════════════════════════════════════════════════════════════════
-   GSAP CHOREOGRAPHY
+   SCROLL CHOREOGRAPHY
    ══════════════════════════════════════════════════════════════════════ */
 if (hasGsap) {
   ScrollTrigger.create({ start: 0, end: 'max', onUpdate: (self) => root.style.setProperty('--sc', self.progress.toFixed(4)) });
 
-  /* hero tiles: staggered entrance on load */
-  const heroReveals = gsap.utils.toArray('.hero .reveal');
+  // hero intro
+  const heroEls = gsap.utils.toArray('[data-hero]');
   if (!reduced) {
-    gsap.set(heroReveals, { opacity: 0, y: 22 });
-    gsap.to(heroReveals, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.07, delay: 0.15 });
-  } else { gsap.set(heroReveals, { opacity: 1, y: 0 }); }
+    gsap.set(heroEls, { opacity: 0, y: 26 });
+    gsap.to(heroEls, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.13, delay: 0.15 });
+  } else gsap.set(heroEls, { opacity: 1, y: 0 });
 
-  /* section reveals — stagger tiles within each bento */
-  gsap.utils.toArray('.reveal').forEach((el) => {
-    if (el.closest('.hero')) return;
-    if (el.classList.contains('bento')) {
-      gsap.set(el, { opacity: 1 });
-      const tiles = el.querySelectorAll('.tile');
-      gsap.set(tiles, { opacity: 0, y: 22 });
-      gsap.to(tiles, {
-        opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', stagger: 0.05,
-        scrollTrigger: { trigger: el, start: 'top 86%', toggleActions: 'play none none reverse' },
-      });
-    } else {
-      gsap.to(el, {
-        opacity: 1, y: 0, duration: 0.75, ease: 'power3.out',
-        scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none reverse' },
-      });
-    }
-  });
-
-  /* flagship: pin the defense feature + scrub the explode */
-  if (StackScene && !isMobile) {
+  // the flythrough — CSS `position: sticky` handles pinning; we only read progress
+  if (flyMode && Scene) {
     ScrollTrigger.create({
-      trigger: '.defense', start: 'top top', end: 'bottom bottom',
-      pin: '.defense .pin', pinSpacing: true, scrub: reduced ? true : 0.6,
-      onUpdate: (self) => { StackScene.setProgress(self.progress); nudge(); },
-      onToggle: (self) => StackScene.setVisible(self.isActive),
+      trigger: '#descent', start: 'top top', end: 'bottom bottom',
+      onUpdate: (self) => Scene.setFlight(self.progress),
     });
-    StackScene.setVisible(true);
-  } else if (StackScene) {
-    StackScene.setProgress(0.6); StackScene.setVisible(true);
   }
 
-  /* scrollspy → nav active state */
+  // section + layer reveals (reduced-motion: show everything immediately)
+  if (reduced) {
+    gsap.set('.reveal', { opacity: 1, y: 0 });
+    gsap.set('.reveal .card', { opacity: 1, y: 0 });
+    gsap.set('.descent.flat .layer', { opacity: 1, y: 0 });
+  } else {
+    gsap.utils.toArray('.reveal').forEach((el) => {
+      if (el.classList.contains('grid')) {
+        gsap.set(el, { opacity: 1 });
+        const items = el.querySelectorAll('.card');
+        gsap.set(items, { opacity: 0, y: 24 });
+        gsap.to(items, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.06,
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' } });
+      } else {
+        gsap.to(el, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none reverse' } });
+      }
+    });
+    if (!flyMode) {
+      gsap.utils.toArray('.descent.flat .layer').forEach((el) => {
+        gsap.fromTo(el, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none reverse' } });
+      });
+    }
+  }
+
+  // scrollspy
   const navLinks = Array.prototype.slice.call(doc.querySelectorAll('.nav-links a'));
   doc.querySelectorAll('section[id], header[id]').forEach((sec) => {
-    ScrollTrigger.create({
-      trigger: sec, start: 'top 50%', end: 'bottom 50%',
-      onToggle: (self) => { if (self.isActive) navLinks.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + sec.id)); },
-    });
+    ScrollTrigger.create({ trigger: sec, start: 'top 52%', end: 'bottom 52%',
+      onToggle: (self) => { if (self.isActive) navLinks.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + sec.id)); } });
   });
 } else {
   root.classList.remove('js');
@@ -387,13 +296,8 @@ if (hasGsap) {
 /* ════════════════════════════════════════════════════════════════════════
    VANILLA UI
    ══════════════════════════════════════════════════════════════════════ */
-const glow = doc.querySelector('.cursor-glow');
-if (glow && finePointer) {
-  window.addEventListener('pointermove', (e) => {
-    glow.style.opacity = '1';
-    glow.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0) translate(-50%,-50%)';
-  }, { passive: true });
-  doc.querySelectorAll('.tile').forEach((c) => {
+if (finePointer) {
+  doc.querySelectorAll('.card').forEach((c) => {
     c.addEventListener('pointermove', (e) => {
       const r = c.getBoundingClientRect();
       c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
@@ -409,8 +313,8 @@ function applyPaused() {
 }
 if (motionBtn) motionBtn.addEventListener('click', () => {
   paused = !paused; applyPaused();
-  if (!paused) { animate = true; requestAnimationFrame(loop); } else renderOnce(performance.now());
+  if (!paused) requestAnimationFrame(tick); else if (Scene) Scene.render(performance.now());
 });
 applyPaused();
 
-window.addEventListener('load', () => { if (hasGsap) ScrollTrigger.refresh(); if (MeshScene) MeshScene.resize(); if (StackScene) StackScene.resize(); renderOnce(performance.now()); });
+window.addEventListener('load', () => { if (hasGsap) ScrollTrigger.refresh(); if (Scene) { Scene.resize(); Scene.render(performance.now()); } });
