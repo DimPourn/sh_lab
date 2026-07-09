@@ -1,0 +1,37 @@
+# Quadlet unit — installed by 02-vw-migrate.sh to
+#   ~/.config/containers/systemd/vaultwarden.container
+# Placeholders __IMAGE__ / __PORT__ / __HOME__ are filled in by the script.
+#
+# Hardening mirrors the Docker deployment: all capabilities dropped,
+# no-new-privileges, loopback-only publish. Rootless adds the big one on top:
+# container root maps to an unprivileged host UID, and no root daemon exists.
+
+[Unit]
+Description=Vaultwarden password manager (rootless Podman)
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=__IMAGE__
+ContainerName=vaultwarden
+EnvironmentFile=__HOME__/vaultwarden.env
+Volume=__HOME__/data:/data
+PublishPort=127.0.0.1:__PORT__:80
+DropCapability=all
+NoNewPrivileges=true
+# official image ships its own healthcheck script
+HealthCmd=/healthcheck.sh
+HealthInterval=90s
+HealthRetries=3
+HealthStartPeriod=30s
+# stateful service: NO auto-update, by policy (see incident INC-01).
+# update manually:  podman pull <image> && systemctl --user restart vaultwarden
+# logs go to the user journal:  journalctl --user -u vaultwarden
+LogDriver=journald
+
+[Service]
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
