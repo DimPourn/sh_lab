@@ -38,7 +38,7 @@ A self-hosted homelab running on a Raspberry Pi 5, built as a personal infrastru
 
 ## Security posture
 
-- **Zero public attack surface** — every service sits behind a WireGuard-based mesh VPN requiring per-device key authentication; nothing is reachable from the open internet
+- **Zero inbound public listeners** — every service sits behind a WireGuard-based mesh VPN requiring per-device key authentication; nothing is reachable from the open internet
 - **Defense in depth** — the firewall layer is scoped independently of the VPN, so a misconfigured container can't accidentally expose a port beyond its intended internal audience
 - **Least privilege on containers** — `cap_drop: ALL` with a narrow, explicit `cap_add` only where a service genuinely needs it, `no-new-privileges` everywhere, non-root execution via UID/GID mapping wherever the base image supports it, read-only root filesystems where feasible
 - **Network segmentation** — multiple isolated Docker networks instead of a single flat network, to contain the blast radius of any one compromised container
