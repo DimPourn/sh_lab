@@ -298,11 +298,12 @@
 <section class="section shell" id="services" data-chapter="Services">
   <div class="sec-head reveal">
     <span class="kicker"><span class="n">01 —</span> what runs on it</span>
-    <h2>Twelve services, one board</h2>
-    <p>Core infrastructure, personal apps, and a full observability stack — each containerized and hardened.</p>
+    <h2>Twelve containers, one board</h2>
+    <p>Core infrastructure, personal apps, and a full observability stack — containerized and hardened, plus one deliberately host-level resolver.</p>
   </div>
   <div class="grid g-4 reveal">
     <div class="card svc" style="--accent:var(--cyan)"><h4><span class="dot"></span>Pi-hole</h4><p>Network-wide DNS ad &amp; tracker blocking.</p><div class="tags">core · dns</div></div>
+    <div class="card svc" style="--accent:var(--cyan)"><h4><span class="dot"></span>Unbound</h4><p>Recursive resolver behind Pi-hole — resolves from the root servers down, so no third-party resolver holds a full log of our DNS. Runs on the host via apt, not in Docker.</p><div class="tags">core · dns · host</div></div>
     <div class="card svc" style="--accent:var(--cyan)"><h4><span class="dot"></span>WUD</h4><p>What's Up Docker — image update tracking; stateful services opted out after a real incident.</p><div class="tags">core · updates</div></div>
     <div class="card svc" style="--accent:var(--cyan)"><h4><span class="dot"></span>Homepage</h4><p>Single-pane dashboard with live Grafana panels and native widgets.</p><div class="tags">core · dashboard</div></div>
     <div class="card svc" style="--accent:var(--violet)"><h4><span class="dot"></span>Vaultwarden</h4><p>Self-hosted, Bitwarden-compatible password manager.</p><div class="tags">apps · secrets</div></div>
@@ -380,7 +381,7 @@
         <tr><td>metrics</td><td>Prometheus, node-exporter, cAdvisor, blackbox-exporter, pihole-exporter</td></tr>
         <tr><td>dashboards / alerting</td><td>Grafana, Alertmanager, ntfy</td></tr>
         <tr><td>logging</td><td>Loki, Promtail</td></tr>
-        <tr><td>dns</td><td>Pi-hole</td></tr>
+        <tr><td>dns</td><td>Pi-hole, Unbound (recursive)</td></tr>
         <tr><td>passwords</td><td>Vaultwarden</td></tr>
         <tr><td>documents</td><td>Paperless-ngx (Postgres, Redis)</td></tr>
         <tr><td>smart home</td><td>Home Assistant</td></tr>
