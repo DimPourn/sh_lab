@@ -17,7 +17,8 @@ A self-hosted homelab running on a Raspberry Pi 5, built as a personal infrastru
 ## Services
 
 ### Core infrastructure
-- **Pi-hole** — network-wide DNS ad/tracker blocking
+- **Pi-hole** — network-wide DNS ad/tracker blocking (StevenBlack's unified hosts list, phishing.army, plus malware and telemetry lists — roughly 1.2M domains blocked)
+- **Unbound** — recursive DNS resolver sitting behind Pi-hole as its sole upstream. Queries are resolved from the root servers down rather than forwarded, so no third-party resolver holds a complete log of the household's DNS traffic. Unlike everything else here it runs **on the host as an apt package, not in a container** — so it sits outside the per-container hardening described below, and it is patched through OS package updates rather than tracked by WUD
 - **WUD (What's Up Docker)** — tracks and applies container image updates, with stateful services explicitly opted out of auto-following image tags (see *Incidents* below)
 
 ### Personal apps
@@ -67,10 +68,24 @@ Wiring a service's metrics into the monitoring stack, requests timed out intermi
 | Metrics | Prometheus, node-exporter, cAdvisor, blackbox-exporter, pihole-exporter |
 | Dashboards / alerting | Grafana, Alertmanager, ntfy |
 | Logging | Loki, Promtail |
-| DNS | Pi-hole |
+| DNS | Pi-hole, Unbound (recursive) |
 | Password management | Vaultwarden |
 | Document management | Paperless-ngx (Postgres, Redis) |
 | Smart home | Home Assistant |
 | Photos | Immich |
 | Update management | WUD (What's Up Docker) |
 | Container runtime | Docker Compose, per-service hardening (capabilities, non-root, read-only fs) |
+
+## Known gaps & next steps
+
+Written down deliberately. A doc that implies everything is finished is less useful than one
+that says where the weak points are — and these are the next things being worked on.
+
+| Gap | Why it matters | Planned fix |
+|---|---|---|
+| **No backups** | The biggest risk in the whole build. Root storage is still an SD card, and Vaultwarden (SQLite), Paperless-ngx (Postgres) and Home Assistant all hold data that can't be regenerated. SD failure is a *when*, not an *if*. | Restic to a local target plus an offsite bucket, driven by **database-aware pre-hooks** (`pg_dump`, `sqlite3 .backup`) — snapshotting a live database file restores as corruption, so the dump has to happen first. Then one timed restore drill onto a spare card, to turn the recovery time from a guess into a measured number. |
+| **The stack isn't reproducible from this repo** | The architecture is documented in prose, but no compose files are committed. A rebuild after an SD failure would be from memory. | Commit the compose files, with secrets encrypted at rest via SOPS + age so nothing sensitive lands in git history. |
+| **Pi-hole is a single point of DNS failure** | Every device pointed at it loses name resolution while the Pi reboots. | A secondary resolver — either a second Pi-hole, or a plain upstream as DHCP's secondary, accepting that it bypasses filtering during failover. |
+| **No image vulnerability scanning** | Update automation tracks which images are *newer*, not which are *safer*. An image can be perfectly up to date and still carry known CVEs. | Trivy on a schedule, with findings routed into the Alertmanager → ntfy path that already exists. |
+| **Docker socket exposure** | WUD, cAdvisor and Homepage's Docker widgets each need access to the Docker socket, and write access to it is effectively root on the host — which undercuts the per-container `cap_drop: ALL` hardening described above. | Route them through a read-only `docker-socket-proxy`, scoping each consumer to only the API endpoints it actually needs. |
+| **Immich is offline** | The photo library is down pending storage capacity. | Bring it back once the NVMe migration and NAS-backed storage are in place. |
