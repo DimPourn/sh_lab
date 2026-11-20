@@ -1,6 +1,6 @@
 # Raspberry Pi homelab
 
-A personal infrastructure project by Dimitris Pournatzis. I use a Raspberry Pi 5 to get hands-on experience with Linux administration, container operations, private networking, monitoring, and recovery.
+A cybersecurity homelab by Dimitris Pournatzis. I use a Raspberry Pi 5 to practice Linux service hardening, private networking, monitoring, and recovery.
 
 [View the project portfolio](https://dimpourn.github.io/sh_lab/)
 

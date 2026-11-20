@@ -13,11 +13,11 @@ const hasGsap = !!(gsap && ScrollTrigger);
 if (hasGsap) gsap.registerPlugin(ScrollTrigger);
 
 const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
-const mobileLayout = window.matchMedia('(max-width: 820px)');
+const flatLayout = window.matchMedia('(max-width: 820px), (max-height: 540px)');
 let paused = motionPreference.matches;
 let flyMode = false;
 const finePointer = window.matchMedia('(pointer:fine)').matches;
-const isMobile = mobileLayout.matches;
+const isMobile = flatLayout.matches;
 const DPR = Math.min(window.devicePixelRatio || 1, isMobile ? 1.6 : 2);
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -757,7 +757,7 @@ const Scene = (() => {
     renderer.setPixelRatio(DPR);
     renderer.setClearColor(0x000000, 0);
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x070b16, 0.011);
+    scene.fog = new THREE.FogExp2(0x081210, 0.011);
     camera = new THREE.PerspectiveCamera(62, 1, 0.1, 400);
 
     // starfield / dust spanning the whole descent
@@ -896,9 +896,9 @@ const nav = doc.querySelector('.nav');
 const chapters = [...doc.querySelectorAll('main > [id]')];
 
 function applyMotion(playIntro = false) {
-  const nextFly = Boolean(hasGsap && Scene && !paused && !mobileLayout.matches);
+  const nextFly = Boolean(hasGsap && Scene && !paused && !flatLayout.matches);
   const layoutChanged = nextFly !== flyMode;
-  const anchorY = nav.offsetHeight + 12;
+  const anchorY = Math.max(nav.offsetHeight, parseFloat(getComputedStyle(root).scrollPaddingTop)) + 12;
   const visible = layoutChanged && chapters.find((chapter) => chapter.getBoundingClientRect().bottom > anchorY);
   const visibleOffset = visible ? visible.getBoundingClientRect().top : 0;
   const currentIndex = visible === descentEl
@@ -933,18 +933,18 @@ function applyMotion(playIntro = false) {
 }
 
 if (hasGsap) {
+  const updatePageProgress = ({ progress }) => {
+    const height = window.innerHeight;
+    const tour = descentEl.getBoundingClientRect();
+    const visibility = smooth(1 - tour.top / height) * smooth(tour.bottom / height);
+    root.style.setProperty('--sc', progress.toFixed(4));
+    root.style.setProperty('--scene-opacity', (0.14 + visibility * (flyMode ? 0.86 : 0.13)).toFixed(3));
+  };
   ScrollTrigger.create({
     start: 0,
     end: 'max',
-    onUpdate: (trigger) => root.style.setProperty('--sc', trigger.progress.toFixed(4)),
-  });
-  const dimScene = ({ progress }) => root.style.setProperty('--scene-opacity', (1 - progress * 0.58).toFixed(3));
-  ScrollTrigger.create({
-    trigger: '#services',
-    start: 'top 90%',
-    end: 'top 35%',
-    onUpdate: dimScene,
-    onRefresh: dimScene,
+    onUpdate: updatePageProgress,
+    onRefresh: updatePageProgress,
   });
   const navLinks = [...doc.querySelectorAll('.nav-links a')];
   for (const chapter of chapters) {
@@ -972,6 +972,41 @@ if (finePointer) {
   }
 }
 
+const labViewer = doc.getElementById('lab-console');
+const tabList = labViewer.querySelector('[role="tablist"]');
+const viewerTabs = [...tabList.querySelectorAll('[role="tab"]')];
+const viewerPanels = viewerTabs.map((tab) => doc.getElementById(tab.getAttribute('aria-controls')));
+
+function selectViewerTab(active) {
+  labViewer.dataset.view = viewerTabs[active].dataset.view;
+  viewerTabs.forEach((tab, i) => {
+    const selected = i === active;
+    tab.setAttribute('aria-selected', String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    viewerPanels[i].hidden = !selected;
+  });
+}
+
+viewerTabs.forEach((tab, index) => {
+  viewerPanels[index].setAttribute('role', 'tabpanel');
+  viewerPanels[index].setAttribute('aria-labelledby', tab.id);
+  tab.addEventListener('click', () => selectViewerTab(index));
+  tab.addEventListener('keydown', (event) => {
+    let next;
+    switch (event.key) {
+      case 'ArrowLeft': next = (index - 1 + viewerTabs.length) % viewerTabs.length; break;
+      case 'ArrowRight': next = (index + 1) % viewerTabs.length; break;
+      case 'Home': next = 0; break;
+      case 'End': next = viewerTabs.length - 1; break;
+      default: return;
+    }
+    event.preventDefault();
+    selectViewerTab(next);
+    viewerTabs[next].focus();
+  });
+});
+tabList.hidden = false;
+
 for (const button of layerButtons) {
   button.addEventListener('click', () => scrollToLayer(Number(button.dataset.layer), 'smooth'));
 }
@@ -986,7 +1021,7 @@ motionPreference.addEventListener('change', ({ matches }) => {
     applyMotion();
   }
 });
-mobileLayout.addEventListener('change', () => applyMotion());
+flatLayout.addEventListener('change', () => applyMotion());
 window.addEventListener('resize', () => {
   if (Scene) {
     Scene.resize();

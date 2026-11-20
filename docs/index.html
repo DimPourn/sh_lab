@@ -4,312 +4,99 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Descent — Raspberry Pi Homelab | Dimitris Pournatzis</title>
-<meta name="description" content="A 3D tour of my Raspberry Pi homelab and case studies in Linux recovery, observability, and backup automation.">
+<meta name="description" content="Dimitris Pournatzis’s cybersecurity homelab portfolio, with a 3D tour and case studies in detection, Linux recovery, and backup verification.">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#070b16">
+<meta name="theme-color" content="#081210">
 <link rel="canonical" href="https://dimpourn.github.io/sh_lab/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070b16'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%2338bdf8'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23818cf8' stroke-width='1.4' opacity='.8'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23fcd34d' stroke-width='1' opacity='.5'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23081210'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23a5f78d'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2374dccc' stroke-width='1.4' opacity='.8'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23e4ce8b' stroke-width='1' opacity='.5'/%3E%3C/svg%3E">
 <meta property="og:title" content="Descent — Raspberry Pi Homelab">
-<meta property="og:description" content="A 3D homelab tour and three infrastructure case studies by Dimitris Pournatzis.">
+<meta property="og:description" content="Explore defense in depth, monitoring, and recovery in Dimitris Pournatzis’s Raspberry Pi homelab.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://dimpourn.github.io/sh_lab/">
-<style>
-  @font-face { font-family: "Space Grotesk"; src: url("./assets/fonts/space-grotesk.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
-  @font-face { font-family: "Sora"; src: url("./assets/fonts/sora.woff2") format("woff2"); font-weight: 300 600; font-display: swap; }
-  @font-face { font-family: "Space Mono"; src: url("./assets/fonts/space-mono.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-  @font-face { font-family: "Space Mono"; src: url("./assets/fonts/space-mono-bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
-
-  :root {
-    --bg: #070b16;
-    --bg-2: #0b1220;
-    --plum: #0e1626;
-    --panel: rgba(18, 26, 48, .55);
-    --panel-solid: #0f1526;
-    --border: rgba(129, 140, 248, .2);
-    --border-hi: rgba(56, 189, 248, .5);
-    --ink: #eef4ff;
-    --text: #b8c8e4;
-    --muted: #808eae;
-    --faint: #4e5b7c;
-    --violet: #818cf8;
-    --violet-d: #6366f1;
-    --magenta: #38bdf8;
-    --pink: #22d3ee;
-    --gold: #fcd34d;
-    --amber: #f59e0b;
-    --cyan: #2dd4bf;
-    --disp: "Space Grotesk", system-ui, sans-serif;
-    --sans: "Sora", system-ui, -apple-system, sans-serif;
-    --mono: "Space Mono", ui-monospace, Menlo, monospace;
-    --r: 18px;
-    --shadow: 0 30px 80px -30px rgba(0, 0, 0, .9);
-    --sc: 0;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
-  html.motion-off { scroll-behavior: auto; }
-  a:focus-visible, button:focus-visible { outline: 2px solid var(--pink); outline-offset: 4px; }
-  .skip-link { position: fixed; z-index: 100; top: .75rem; left: 1rem; padding: .55rem .8rem; border-radius: .4rem; background: var(--ink); color: var(--bg); transform: translateY(-160%); }
-  .skip-link:focus { transform: none; }
-  [hidden] { display: none !important; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: var(--sans); font-size: 1rem; line-height: 1.7; font-weight: 300;
-    -webkit-font-smoothing: antialiased; overflow-x: clip; letter-spacing: .005em;
-  }
-  ::selection { background: rgba(56, 189, 248, .32); color: #fff; }
-  img { max-width: 100%; display: block; }
-  a { color: var(--magenta); text-decoration: none; }
-  h1, h2, h3, h4 { font-family: var(--disp); color: var(--ink); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; }
-
-  /* ── fixed 3D stage + ambient ─────────────────────── */
-  #scene { position: fixed; inset: 0; z-index: -2; display: block; width: 100%; height: 100%; opacity: var(--scene-opacity, 1); }
-  .veil { position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background:
-      radial-gradient(70% 50% at 78% 8%, rgba(99,102,241,.12), transparent 60%),
-      radial-gradient(60% 45% at 15% 88%, rgba(56,189,248,.1), transparent 60%),
-      radial-gradient(120% 80% at 50% 120%, rgba(252,211,77,.05), transparent 55%); }
-  .grain { position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .04; mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-  body.paused .grain { display: none; }
-  .progress { position: fixed; top: 0; left: 0; height: 2px; width: 100%; z-index: 95; transform-origin: 0 50%; transform: scaleX(var(--sc));
-    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--magenta), var(--gold)); box-shadow: 0 0 14px rgba(56,189,248,.6); }
-
-  /* ── nav ──────────────────────────────────────────── */
-  .nav { position: fixed; inset: 0 0 auto 0; z-index: 80; display: flex; align-items: center; justify-content: space-between;
-    padding: 1rem clamp(1rem, 4vw, 2.4rem); }
-  .nav::before { content: ""; position: absolute; inset: 0; z-index: -1; backdrop-filter: blur(12px);
-    background: linear-gradient(180deg, rgba(7,11,22,.7), transparent); mask-image: linear-gradient(180deg, #000 40%, transparent); }
-  .brand { font-family: var(--disp); font-weight: 600; font-size: .92rem; letter-spacing: .02em; color: var(--ink); display: flex; align-items: center; gap: .6rem; }
-  .brand .orb { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--pink), var(--violet-d) 70%); box-shadow: 0 0 14px rgba(56,189,248,.7); }
-  .nav-right { display: flex; align-items: center; gap: 1.4rem; }
-  .nav-links { display: flex; gap: 1.3rem; }
-  .nav-links a { font-family: var(--mono); font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); transition: color .25s; }
-  .nav-links a:hover, .nav-links a.active { color: var(--magenta); }
-  .motion-btn { font-family: var(--mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
-    background: none; border: 1px solid var(--border); border-radius: 100px; padding: .4rem .72rem; min-height: 2.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: .42rem; transition: border-color .25s, color .25s; }
-  .motion-btn:hover { color: var(--magenta); border-color: var(--border-hi); }
-  .motion-btn .d { width: 6px; height: 6px; border-radius: 50%; background: var(--magenta); box-shadow: 0 0 8px var(--magenta); }
-  body.paused .motion-btn .d { background: var(--muted); box-shadow: none; }
-  @media (max-width: 660px) {
-    html { scroll-padding-top: 6rem; }
-    .nav { display: grid; grid-template-columns: 1fr auto; gap: .2rem 1rem; padding: .65rem 1rem; }
-    .nav::before { background: rgba(7,11,22,.92); mask-image: none; }
-    .nav-right { display: contents; }
-    .nav-links { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; gap: .45rem; }
-    .nav-links a { font-size: .7rem; padding: .45rem 0; }
-    .motion-btn { grid-column: 2; grid-row: 1; }
-  }
-
-  /* ── shell ────────────────────────────────────────── */
-  .shell { max-width: 1120px; margin: 0 auto; padding: 0 clamp(1.2rem, 4vw, 2.4rem); }
-  .section { padding: clamp(4rem, 10vw, 8rem) 0 0; position: relative; z-index: 2; }
-  .sec-head { text-align: center; max-width: 40rem; margin: 0 auto 2.6rem; }
-  .sec-head h2 { font-size: clamp(1.9rem, 4.6vw, 3rem); }
-  .sec-head p { color: var(--muted); margin-top: .9rem; font-size: .98rem; }
-
-  /* ── hero ─────────────────────────────────────────── */
-  .hero { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; z-index: 2; padding: 6rem 1.4rem 3rem; }
-  .hero .eyebrow { font-family: var(--mono); font-size: .8rem; letter-spacing: .2em; text-transform: uppercase; color: var(--violet); margin-bottom: 1.6rem; }
-  .hero h1 { font-size: clamp(2.4rem, 9vw, 6.4rem); font-weight: 700; letter-spacing: -0.04em; line-height: .96; }
-  .hero h1 .l { display: block; }
-  .hero h1 .grad { background: linear-gradient(100deg, #2dd4bf, #38bdf8 40%, #818cf8 72%, #fcd34d); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero .lede { margin-top: 1.8rem; max-width: 34rem; font-size: 1.06rem; color: var(--text); }
-  .hero .lede, .hero .eyebrow, .layer .desc, .descent-hint { text-shadow: 0 1px 10px var(--bg), 0 1px 3px var(--bg); }
-  .hero .lede b { color: var(--ink); font-weight: 500; }
-  .hero .cta { margin-top: 2.2rem; display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center; }
-  .btn { font-family: var(--sans); font-weight: 500; font-size: .92rem; padding: .82rem 1.5rem; border-radius: 100px; display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
-    transition: transform .25s, box-shadow .25s, border-color .25s, color .25s, background .25s; }
-  .btn.primary { color: #1a0616; font-weight: 600; background: linear-gradient(100deg, #22d3ee, #38bdf8); box-shadow: 0 10px 40px -8px rgba(56,189,248,.6); }
-  .btn.primary:hover { transform: translateY(-3px); box-shadow: 0 18px 55px -10px rgba(56,189,248,.8); }
-  .btn.ghost { color: var(--text); border: 1px solid var(--border); background: rgba(24,16,42,.4); backdrop-filter: blur(6px); }
-  .btn.ghost:hover { border-color: var(--border-hi); color: var(--magenta); transform: translateY(-3px); }
-  .hero .stats { margin-top: 3.4rem; display: flex; flex-wrap: wrap; gap: 2.4rem; justify-content: center; }
-  .hero .stat { display: flex; flex-direction: column-reverse; }
-  .hero .stat .v { font-family: var(--disp); font-size: 1.8rem; font-weight: 700; color: var(--ink); }
-  .hero .stat .v.ok { background: linear-gradient(100deg, #22d3ee, #38bdf8); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero .stat .k { font-family: var(--mono); font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: .3rem; }
-  .scroll-cue { position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: var(--faint); display: flex; flex-direction: column; align-items: center; gap: .5rem; }
-  .scroll-cue .ln { width: 1px; height: 34px; background: linear-gradient(var(--magenta), transparent); animation: cue 2.4s ease-in-out infinite; }
-  @keyframes cue { 0%,100% { transform: scaleY(.4); opacity: .4; transform-origin: top; } 50% { transform: scaleY(1); opacity: 1; } }
-
-  /* ── DESCENT (pinned flythrough) ──────────────────── */
-  .descent { position: relative; height: 780vh; z-index: 2; }
-  .descent-stage { position: sticky; top: 0; height: 100vh; height: 100dvh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .layer-counter { display: grid; gap: .45rem; min-width: 16rem; text-align: center; position: absolute; top: clamp(4.5rem, 12vh, 7rem); left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: .78rem; letter-spacing: .11em; color: var(--text); }
-  .layer-counter #layer-num { color: var(--magenta); font-size: 1rem; }
-  .layers-overlay { position: relative; width: min(92vw, 620px); height: 60vh; }
-  .layer { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; text-align: left; opacity: 0; transform: translateY(30px) scale(.98); pointer-events: none; }
-  .js .descent:not(.flat) .layer { will-change: opacity, transform; }
-  .layer .lnum { font-family: var(--mono); font-size: .78rem; letter-spacing: .3em; color: var(--accent); margin-bottom: 1rem; display: flex; align-items: center; gap: .8rem; }
-  .layer .lnum::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); opacity: .5; }
-  .layer h2 { font-size: clamp(2rem, 5.5vw, 3.4rem); font-weight: 700; letter-spacing: -0.03em; }
-  .layer h2 .a { color: var(--accent); }
-  .layer .desc { margin-top: 1.1rem; font-size: 1.05rem; color: var(--text); max-width: 30rem; }
-  .layer .meta { margin-top: 1.3rem; font-family: var(--mono); font-size: .86rem; color: var(--text); border-left: 2px solid var(--accent); padding-left: .9rem; line-height: 1.7; }
-  .descent-hint { position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: .78rem; letter-spacing: .15em; text-transform: uppercase; color: var(--text); }
-  .js .descent:not(.flat) .descent-stage::before { content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(58% 62% at 42% 52%, rgba(7,11,22,.6), transparent 72%); }
-  .js .descent:not(.flat) .layers-overlay { z-index: 1; }
-  .js .descent:not(.flat) .layer { transition: opacity .55s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
-  .js .descent:not(.flat) .layer.active { opacity: 1; transform: none; pointer-events: auto; }
-
-  /* flat fallback (mobile / reduced / no-webgl) */
-  .descent.flat { height: auto; }
-  .descent.flat .descent-stage { position: relative; height: auto; display: block; padding: 2rem 0; }
-  .descent.flat .layer-counter, .descent.flat .descent-hint { display: none; }
-  .descent.flat .layers-overlay { width: min(92vw, 640px); height: auto; margin: 0 auto; }
-  .descent.flat .layer { position: relative; inset: auto; opacity: 1; transform: none; padding: 2rem 0; border-top: 1px solid var(--border); }
-  .descent.flat .layer:first-child { border-top: none; }
-
-  /* ── generic cards / grid ─────────────────────────── */
-  .grid { display: grid; gap: 16px; }
-  .g-2 { grid-template-columns: repeat(2, 1fr); }
-  .g-3 { grid-template-columns: repeat(3, 1fr); }
-  .g-4 { grid-template-columns: repeat(4, 1fr); }
-  .card { position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 1.5rem 1.6rem;
-    backdrop-filter: blur(10px); overflow: hidden; transition: transform .35s cubic-bezier(.2,.7,.2,1), border-color .35s, box-shadow .35s; }
-  .card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent, var(--violet)), transparent); opacity: .55; }
-  .card::after { content: ""; position: absolute; inset: 0; border-radius: var(--r); pointer-events: none;
-    background: radial-gradient(340px 200px at var(--mx,50%) var(--my,-10%), rgba(56,189,248,.1), transparent 70%); opacity: 0; transition: opacity .35s; }
-  .card:hover { transform: translateY(-4px); border-color: var(--border-hi); box-shadow: 0 30px 60px -30px rgba(0,0,0,.9); }
-  .card:hover::after { opacity: 1; }
-  .card h3 { font-size: 1rem; margin-bottom: .5rem; display: flex; align-items: center; gap: .55rem; }
-  .card p { font-size: 1rem; color: var(--text); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--violet)); box-shadow: 0 0 10px var(--accent, var(--violet)); flex: none; }
-  code { font-family: var(--mono); font-size: .82em; color: var(--gold); background: rgba(252,211,77,.08); border: 1px solid rgba(252,211,77,.18); border-radius: 5px; padding: .06em .4em; }
-
-  .span-2 { grid-column: span 2; }
-
-  /* incidents */
-  .incident { border-left: 3px solid var(--accent); }
-  .incident .top { display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem; flex-wrap: wrap; }
-  .incident .sev { font-family: var(--mono); font-size: .78rem; letter-spacing: .04em; color: var(--accent); border: 1px solid currentColor; border-radius: 4px; padding: .14rem .45rem; }
-  .incident h3 { font-size: 1.15rem; }
-  .incident { display: flex; flex-direction: column; }
-  .incident .fix { color: var(--text); padding-top: .7rem; margin-top: auto; }
-  .incident .fix strong { color: var(--ink); }
-
-  /* table */
-  .tablewrap { border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; background: var(--panel); backdrop-filter: blur(10px); }
-  table { border-collapse: collapse; width: 100%; font-size: .86rem; }
-  th, td { text-align: left; padding: .78rem 1.1rem; border-bottom: 1px solid var(--border); }
-  th { font-family: var(--mono); font-size: .62rem; text-transform: uppercase; letter-spacing: .12em; color: var(--violet); font-weight: 400; }
-  tr:last-child td { border-bottom: none; }
-  tbody th { color: var(--muted); font-family: var(--mono); font-size: .78rem; white-space: nowrap; letter-spacing: 0; text-transform: none; }
-  tbody tr { transition: background .25s; } tbody tr:hover { background: rgba(129,140,248,.06); }
-
-  footer { margin-top: clamp(5rem, 10vw, 8rem); border-top: 1px solid var(--border); padding: 2.4rem 0 3.4rem; position: relative; z-index: 2; }
-  footer .shell { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; color: var(--muted); font-family: var(--mono); font-size: .72rem; }
-
-  /* reveal */
-  .profiles { display: flex; flex-wrap: wrap; gap: 1rem; }
-
-  /* responsive */
-  @media (max-width: 900px) { .g-4 { grid-template-columns: repeat(2, 1fr); } .g-3 { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 620px) { .g-2, .g-3, .g-4 { grid-template-columns: 1fr; } .span-2 { grid-column: span 1; } .hero .stats { gap: 1.6rem; } }
-  .brand .orb { position: relative; }
-  .brand .orb::after {
-    content: ""; position: absolute; inset: -4px; border: 1px solid transparent; border-top-color: var(--pink);
-    border-right-color: var(--violet); border-radius: 50%;
-  }
-  .js:not(.motion-off) .brand .orb::after { animation: orbit 5s linear infinite; }
-  @keyframes orbit { to { transform: rotate(1turn); } }
-
-  .hero h1 .grad { background-size: 145% 100%; }
-  .js:not(.motion-off) .hero h1 .grad { animation: shimmer 9s ease-in-out infinite alternate; }
-  @keyframes shimmer { from { background-position: 0 50%; } to { background-position: 100% 50%; } }
-
-  .layer-track { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: .3rem; }
-  .layer-track::after {
-    content: ""; position: absolute; bottom: 0; inset-inline: 0; height: 1px; pointer-events: none;
-    background: linear-gradient(90deg, var(--cyan), var(--magenta), var(--violet), var(--gold));
-    transform: scaleX(var(--layer-progress, 0)); transform-origin: left; opacity: .8;
-  }
-  .layer-track button {
-    display: grid; place-items: center; min-height: 2rem; padding-inline: .2rem; background: transparent;
-    border: 0; border-radius: .2rem; cursor: pointer; color: var(--text);
-  }
-  .layer-track button::before {
-    content: ""; display: block; height: 4px; width: 100%; border-radius: .2rem; background: #45516f;
-    transition: box-shadow .25s, background-color .25s;
-  }
-  .layer-track button:is(:hover, [aria-current="step"])::before {
-    background: var(--chapter-accent, var(--pink)); box-shadow: 0 0 12px var(--chapter-accent, var(--pink));
-  }
-  .layer-track button:nth-child(1) { --chapter-accent: #2dd4bf; }
-  .layer-track button:nth-child(2) { --chapter-accent: #22d3ee; }
-  .layer-track button:nth-child(3) { --chapter-accent: #38bdf8; }
-  .layer-track button:nth-child(4) { --chapter-accent: #60a5fa; }
-  .layer-track button:nth-child(5) { --chapter-accent: #818cf8; }
-  .layer-track button:nth-child(6) { --chapter-accent: #fcd34d; }
-  .js .descent:not(.flat) .layer.active .lnum::after {
-    transform-origin: left; animation: trace .65s cubic-bezier(.2,.7,.2,1) both;
-  }
-  @keyframes trace { from { transform: scaleX(.08); opacity: 0; } to { transform: scaleX(1); opacity: .5; } }
-
-  .motion-off .scroll-cue .ln { animation: none; }
-  .motion-off .card, .motion-off .card::after, .motion-off .btn, .motion-off .motion-btn { transition: none; }
-  .motion-off .card:hover, .motion-off .btn:hover { transform: none; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .scroll-cue .ln, .js:not(.motion-off) .brand .orb::after, .js:not(.motion-off) .hero h1 .grad { animation: none; }
-  }
-  @media (max-width: 660px) {
-    .hero { padding: 8rem 1.25rem 4rem; }
-    .hero .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .card { padding: 1.25rem; }
-    th, td { padding-inline: .65rem; }
-  }
-  @media (max-height: 660px) { .scroll-cue { display: none; } }
-</style>
+<link rel="stylesheet" href="./site.css">
 </head>
 <body>
 
 <canvas id="scene" aria-hidden="true"></canvas>
 <div class="veil" aria-hidden="true"></div>
-<div class="grain" aria-hidden="true"></div>
 <div class="progress" aria-hidden="true"></div>
 
 <a class="skip-link" href="#main">Skip to content</a>
 <nav class="nav" aria-label="Main">
-  <a class="brand" href="#top"><span class="orb" aria-hidden="true"></span> Pi 5 · Descent</a>
-  <div class="nav-right">
+  <div class="nav-inner shell">
+    <a class="brand" href="#top"><span class="brand-icon" aria-hidden="true"></span>Descent<span class="brand-note"> / Homelab</span></a>
     <div class="nav-links">
-      <a href="#descent">Layers</a>
-      <a href="#services">Services</a>
-      <a href="#security">Security</a>
+      <a href="#descent">3D tour</a>
+      <a href="#security">Controls</a>
       <a href="#incidents">Case studies</a>
+      <a href="#stack">Stack</a>
     </div>
     <button class="motion-btn" id="motion" type="button" aria-label="Motion" aria-pressed="true" hidden><span class="d" aria-hidden="true"></span><span id="motion-label">Motion on</span></button>
   </div>
 </nav>
 
 <main id="main">
-<header class="hero" id="top">
-  <span class="eyebrow" data-hero>Dimitris Pournatzis · Personal infrastructure project</span>
-  <h1>
-    <span class="l" data-hero>Raspberry Pi</span>
-    <span class="l grad" data-hero>homelab.</span>
-  </h1>
-  <p class="lede" data-hero>I built and operate a small Linux homelab to learn how to run services, diagnose failures, and verify recovery.</p>
-  <div class="cta" data-hero>
-    <a class="btn primary" href="#descent">Begin the descent</a>
-    <a class="btn ghost" href="#incidents">Read case studies</a>
+<header class="hero shell" id="top">
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow" data-hero>Dimitris Pournatzis <span> / </span> Cybersecurity homelab</p>
+      <h1><span class="l" data-hero>Security in</span><span class="l grad" data-hero>practice.</span></h1>
+      <p class="lede" data-hero>I run a Raspberry Pi homelab to practice securing Linux services, detecting silent failures, and verifying recovery.</p>
+      <div class="cta" data-hero>
+        <a class="btn primary" href="#descent">Explore the 3D tour</a>
+        <a class="btn ghost" href="#incidents">Read case studies</a>
+      </div>
+    </div>
+
+    <div class="console" id="lab-console" data-view="access" data-hero>
+      <div class="console-toolbar">
+        <span><span class="console-icon" aria-hidden="true"></span>Lab viewer</span>
+        <span class="console-type">Illustration</span>
+      </div>
+      <div class="console-tabs" role="tablist" aria-label="Explore the lab by topic" hidden>
+        <button id="access-tab" type="button" role="tab" aria-selected="true" aria-controls="access-view" data-view="access">Access</button>
+        <button id="monitoring-tab" type="button" role="tab" aria-selected="false" aria-controls="monitoring-view" data-view="monitoring" tabindex="-1">Monitoring</button>
+        <button id="recovery-tab" type="button" role="tab" aria-selected="false" aria-controls="recovery-view" data-view="recovery" tabindex="-1">Recovery</button>
+      </div>
+      <div class="scope" aria-hidden="true">
+        <div class="scope-grid"></div>
+        <div class="scope-radar">
+          <div class="scope-sweep"></div>
+          <div class="scope-orbit"></div>
+          <div class="scope-core"><span></span></div>
+          <i class="scope-node node-a"></i><i class="scope-node node-b"></i><i class="scope-node node-c"></i>
+        </div>
+        <span class="scope-corner top-left"></span><span class="scope-corner top-right"></span>
+        <span class="scope-corner bottom-left"></span><span class="scope-corner bottom-right"></span>
+      </div>
+      <div id="access-view" class="console-panel">
+        <div><h2>Private access</h2><p>Encrypted remote access and layered network controls.</p></div>
+        <a href="#descent">View layers</a>
+      </div>
+      <div id="monitoring-view" class="console-panel" hidden>
+        <div><h2>Detect silent failures</h2><p>Check the application data behind a healthy endpoint.</p></div>
+        <a href="#detection">Read case</a>
+      </div>
+      <div id="recovery-view" class="console-panel" hidden>
+        <div><h2>Verify recovery</h2><p>Test file repairs and confirm backup copies by checksum.</p></div>
+        <a href="#recovery">Read case</a>
+      </div>
+    </div>
   </div>
+
   <dl class="stats" data-hero>
-    <div class="stat"><dt class="k">Platform</dt><dd class="v ok">Pi 5</dd></div>
-    <div class="stat"><dt class="k">Tour layers</dt><dd class="v ok">6</dd></div>
-    <div class="stat"><dt class="k">Case studies</dt><dd class="v">3</dd></div>
-    <div class="stat"><dt class="k">File ownership repairs</dt><dd class="v">29k+</dd></div>
+    <div class="stat"><dt>Platform</dt><dd>Raspberry Pi 5</dd></div>
+    <div class="stat"><dt>Architecture</dt><dd>6 layers</dd></div>
+    <div class="stat"><dt>Hands-on work</dt><dd>3 case studies</dd></div>
+    <div class="stat"><dt>File ownership repaired</dt><dd>29,048 paths</dd></div>
   </dl>
-  <div class="scroll-cue" aria-hidden="true" data-hero><span class="ln"></span></div>
 </header>
 
 <section class="descent flat" id="descent" aria-label="Infrastructure layers">
+  <p class="flat-intro shell">Defense in depth</p>
   <div class="descent-stage">
     <div class="layer-counter">
-      <p class="layer-position"><span id="layer-num">01</span> / 06 <span class="layer-divider">·</span> Illustrative flythrough</p>
+      <p class="layer-position"><span id="layer-num">01</span> / 06 <span class="layer-divider">·</span> Defense in depth</p>
       <div class="layer-track" role="group" aria-label="Jump to a layer">
         <button type="button" data-layer="0" aria-label="Layer 1, Network edge" aria-current="step"></button>
         <button type="button" data-layer="1" aria-label="Layer 2, Private mesh"></button>
@@ -320,37 +107,37 @@
       </div>
     </div>
     <div class="layers-overlay">
-      <article class="layer" style="--accent:#2dd4bf">
+      <article class="layer" style="--accent:#a5f78d">
         <div class="lnum">01 · Network edge</div>
         <h2>Keep services <span class="a">private.</span></h2>
         <p class="desc">I designed the lab for private use. Keeping application access off the public internet reduces the exposure I have to manage.</p>
         <p class="meta">Minimize public exposure</p>
       </article>
-      <article class="layer" style="--accent:#22d3ee">
+      <article class="layer" style="--accent:#86e9b0">
         <div class="lnum">02 · Private mesh</div>
         <h2>Connect devices <span class="a">securely.</span></h2>
         <p class="desc">I use Tailscale to connect my devices and administer the lab. The mesh provides encrypted connectivity between authorized devices.</p>
         <p class="meta">Tailscale · encrypted remote access</p>
       </article>
-      <article class="layer" style="--accent:#38bdf8">
+      <article class="layer" style="--accent:#72decc">
         <div class="lnum">03 · Service access</div>
         <h2>Use HTTPS <span class="a">internally.</span></h2>
         <p class="desc">A reverse proxy provides HTTPS for internal web applications and handles certificate renewal.</p>
         <p class="meta">Reverse proxy · certificate automation</p>
       </article>
-      <article class="layer" style="--accent:#60a5fa">
+      <article class="layer" style="--accent:#7ccde9">
         <div class="lnum">04 · Host firewall</div>
         <h2>Limit <span class="a">traffic.</span></h2>
         <p class="desc">Host firewall rules add a layer of control over which connections services need.</p>
         <p class="meta">Host-level traffic policy</p>
       </article>
-      <article class="layer" style="--accent:#818cf8">
+      <article class="layer" style="--accent:#abafff">
         <div class="lnum">05 · Segmentation</div>
         <h2>Separate <span class="a">workloads.</span></h2>
         <p class="desc">Docker networks let me group related containers and limit unnecessary connections between workloads.</p>
         <p class="meta">Docker networking · service isolation</p>
       </article>
-      <article class="layer" style="--accent:#fcd34d">
+      <article class="layer" style="--accent:#e4ce8b">
         <div class="lnum">06 · DNS</div>
         <h2>Filter and <span class="a">validate DNS.</span></h2>
         <p class="desc">Pi-hole handles DNS filtering. Unbound carries out recursive lookups and validates DNSSEC signatures.</p>
@@ -363,8 +150,8 @@
 
 <section class="section shell" id="services" aria-labelledby="services-title">
   <div class="sec-head reveal">
-    <h2 id="services-title">Services &amp; tooling</h2>
-    <p>Selected tools I use to run, monitor, and maintain the lab.</p>
+    <h2 id="services-title">What I run</h2>
+    <p>The tools behind private access, Linux operations, and service monitoring.</p>
   </div>
   <div class="grid g-4 reveal">
     <article class="card" style="--accent:var(--cyan)"><h3><span class="dot"></span>Pi-hole</h3><p>Filters DNS requests from devices using the lab’s resolver.</p></article>
@@ -386,8 +173,8 @@
 
 <section class="section shell" id="security" aria-labelledby="security-title">
   <div class="sec-head reveal">
-    <h2 id="security-title">Security practices</h2>
-    <p>How I approach access, changes, and recovery.</p>
+    <h2 id="security-title">How I secure it</h2>
+    <p>The controls and checks I use across the lab.</p>
   </div>
   <div class="grid g-3 reveal">
     <article class="card" style="--accent:var(--violet)"><h3><span class="dot"></span>Private access</h3><p>Use encrypted access for remote administration and keep application access private.</p></article>
@@ -406,19 +193,19 @@
     <p>Three problems I diagnosed, fixed, and verified.</p>
   </div>
   <div class="grid g-3 reveal">
-    <article class="card incident" style="--accent:var(--pink)">
-      <p class="top"><span class="sev">Observability</span></p>
+    <article class="card incident" id="detection" style="--accent:var(--pink)">
+      <p class="top"><span class="sev">Monitoring &amp; detection</span></p>
       <h3>A healthy scrape hid missing data</h3>
       <p>Prometheus could reach an exporter, but application metrics were missing. I traced the problem through exporter logs and restored collection.</p>
       <p class="fix"><strong>Outcome.</strong> Added and tested an alert that detects missing metrics while the exporter is still reachable.</p>
     </article>
-    <article class="card incident" style="--accent:var(--magenta)">
+    <article class="card incident" id="recovery" style="--accent:var(--magenta)">
       <p class="top"><span class="sev">Linux recovery</span></p>
       <h3>Repaired ownership on 29,048 system paths</h3>
       <p>I reconstructed expected file ownership using verified package archives and reviewed local exceptions.</p>
       <p class="fix"><strong>Outcome.</strong> Verified every planned path and confirmed scheduled jobs ran again without rebooting the host.</p>
     </article>
-    <article class="card incident" style="--accent:var(--violet)">
+    <article class="card incident" id="backups" style="--accent:var(--gold)">
       <p class="top"><span class="sev">Backup automation</span></p>
       <h3>Made backup transfers retry automatically</h3>
       <p>Backups completed locally, but their copies often missed the destination’s availability window. I added a retry job for pending transfers.</p>
@@ -447,7 +234,7 @@
 
 <footer>
   <div class="shell">
-    <span>Dimitris Pournatzis</span>
+    <span>Dimitris Pournatzis <span class="footer-divider">/</span> Descent</span>
     <div class="profiles">
       <a href="https://www.linkedin.com/in/dimpournatzis">LinkedIn</a>
       <a href="https://github.com/DimPourn">GitHub</a>
