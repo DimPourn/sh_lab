@@ -548,7 +548,7 @@ h1, h2, h3 {
 .descent.flat .descent-stage { position: static; display: block; height: auto; overflow: visible; }
 .descent.flat .descent-stage::before, .descent.flat .layer-counter, .descent.flat .descent-hint { display: none; }
 .descent.flat .layers-overlay { width: min(var(--content-width), calc(100% - clamp(2rem, 9vw, 8rem))); height: auto; margin-inline: auto; }
-.descent.flat .layer { position: relative; opacity: 1; transform: none; width: auto; padding-block: 2rem; border-top: 1px solid var(--border); pointer-events: auto; }
+.descent.flat .layer { position: relative; opacity: 1; transform: none; transition: none; width: auto; padding-block: 2rem; border-top: 1px solid var(--border); pointer-events: auto; }
 .descent.flat .layer h2 { font-size: clamp(2rem, 5vw, 3.25rem); }
 .descent.flat .layer .desc { max-width: 55ch; }
 
@@ -598,6 +598,20 @@ h1, h2, h3 {
   background: var(--accent, var(--signal));
 }
 
+.practice {
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  border-top: 2px solid var(--accent);
+}
+
+.practice h3 { font-size: clamp(1.4rem, 2.35vw, 1.9rem); }
+.practice p { margin: 0; }
+.practice .verification { padding-top: .8rem; border-top: 1px solid var(--border); }
+.practice strong { display: block; margin-bottom: .25rem; color: var(--accent); font: 400 .8rem/1.5 var(--mono); }
+.practice a { width: fit-content; margin-top: auto; padding-block: .3rem; color: var(--accent); font-size: .85rem; text-decoration: underline; text-underline-offset: .22em; }
+.practice a:hover { color: var(--ink); }
+
 .incident {
   display: flex;
   flex-direction: column;
@@ -609,6 +623,10 @@ h1, h2, h3 {
 .incident h3 { align-items: start; font-size: clamp(1.35rem, 2.2vw, 1.85rem); }
 .incident .fix { margin-top: auto; padding-top: 1rem; }
 .incident .fix strong { color: var(--ink); }
+
+.case-detail { margin-top: .85rem; padding-top: .65rem; border-top: 1px solid var(--border); }
+.case-detail summary { width: fit-content; padding-block: .25rem; color: var(--accent); font-size: .87rem; cursor: pointer; }
+.case-detail summary:hover { color: var(--ink); }
 
 .tablewrap { background: var(--panel); border: 1px solid var(--border); border-radius: .55rem; overflow: hidden; }
 table { width: 100%; border-collapse: collapse; }

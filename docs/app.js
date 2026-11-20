@@ -26,7 +26,8 @@ const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 
 const descentEl = doc.getElementById('descent');
 const stage = descentEl.querySelector('.descent-stage');
-const layerEls = [...descentEl.querySelectorAll('.layer')];
+const layerContainer = descentEl.querySelector('.layers-overlay');
+const layerEls = [...layerContainer.querySelectorAll('.layer')];
 const layerButtons = [...descentEl.querySelectorAll('[data-layer]')];
 const numEl = doc.getElementById('layer-num');
 const N = layerEls.length;
@@ -901,9 +902,12 @@ function applyMotion(playIntro = false) {
   const anchorY = Math.max(nav.offsetHeight, parseFloat(getComputedStyle(root).scrollPaddingTop)) + 12;
   const visible = layoutChanged && chapters.find((chapter) => chapter.getBoundingClientRect().bottom > anchorY);
   const visibleOffset = visible ? visible.getBoundingClientRect().top : 0;
-  const currentIndex = visible === descentEl
-    ? (flyMode ? activeLayer : Math.max(0, layerEls.findIndex((el) => el.getBoundingClientRect().bottom > anchorY)))
-    : 0;
+  let currentIndex = activeLayer;
+  if (visible === descentEl && !flyMode) {
+    // Layout offsets stay stable while individual layers animate into place.
+    const anchorInLayers = anchorY - layerContainer.getBoundingClientRect().top;
+    currentIndex = Math.max(0, layerEls.findLastIndex((el) => el.offsetTop <= anchorInLayers));
+  }
 
   effects?.revert();
   effects = undefined;

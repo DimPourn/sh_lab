@@ -70,16 +70,16 @@
         <span class="scope-corner bottom-left"></span><span class="scope-corner bottom-right"></span>
       </div>
       <div id="access-view" class="console-panel">
-        <div><h2>Private access</h2><p>Encrypted remote access and layered network controls.</p></div>
-        <a href="#descent">View layers</a>
+        <div><h2>Private access</h2><p>Encrypted access, internal HTTPS, and separate controls at the host and container layers.</p></div>
+        <a href="#access-practice">How it works</a>
       </div>
       <div id="monitoring-view" class="console-panel" hidden>
-        <div><h2>Detect silent failures</h2><p>Check the application data behind a healthy endpoint.</p></div>
-        <a href="#detection">Read case</a>
+        <div><h2>Detect silent failures</h2><p>Check endpoint reachability, expected application metrics, and alert delivery.</p></div>
+        <a href="#monitoring-practice">How it works</a>
       </div>
       <div id="recovery-view" class="console-panel" hidden>
-        <div><h2>Verify recovery</h2><p>Test file repairs and confirm backup copies by checksum.</p></div>
-        <a href="#recovery">Read case</a>
+        <div><h2>Verify recovery</h2><p>Track backup copies through delivery and document how to restore them.</p></div>
+        <a href="#recovery-practice">How it works</a>
       </div>
     </div>
   </div>
@@ -148,6 +148,33 @@
   </div>
 </section>
 
+<section class="section shell" id="practices" aria-labelledby="practices-title">
+  <div class="sec-head reveal">
+    <h2 id="practices-title">How I operate the lab</h2>
+    <p>The design decisions behind each console view and how I verify them.</p>
+  </div>
+  <div class="grid g-3 reveal">
+    <article class="card practice" id="access-practice" style="--accent:var(--signal)">
+      <h3>Access</h3>
+      <p>Authorized devices connect through an encrypted mesh. A reverse proxy handles HTTPS for internal web apps. Host firewall rules and separate Docker networks limit unnecessary communication between workloads.</p>
+      <p class="verification"><strong>Verification</strong> I tested recursive DNS using domains with valid and deliberately broken DNSSEC signatures and observed that the resolver rejected the invalid response.</p>
+      <a href="#security">See the security controls</a>
+    </article>
+    <article class="card practice" id="monitoring-practice" style="--accent:var(--magenta)">
+      <h3>Monitoring</h3>
+      <p>Prometheus collects metrics and evaluates rules. Loki holds logs for investigation, and Alertmanager routes notifications. Reachability probes and checks for expected metrics cover different failure modes.</p>
+      <p class="verification"><strong>Verification</strong> I tested the missing-data rule with a real zero, a missing series, and restored data. I also sent a synthetic alert through the delivery pipeline and confirmed receipt.</p>
+      <a href="#detection">Read the missing-metrics case</a>
+    </article>
+    <article class="card practice" id="recovery-practice" style="--accent:var(--gold)">
+      <h3>Recovery</h3>
+      <p>Backup jobs package data and configuration, then send copies to a separate device. Each stage reports its own last successful run, so a healthy local backup can coexist with an overdue transfer.</p>
+      <p class="verification"><strong>Verification</strong> I compared archive checksums on both sides and checked selected backup contents. I keep service-specific restore steps in a runbook.</p>
+      <a href="#backups">Read the backup case</a>
+    </article>
+  </div>
+</section>
+
 <section class="section shell" id="services" aria-labelledby="services-title">
   <div class="sec-head reveal">
     <h2 id="services-title">What I run</h2>
@@ -198,18 +225,30 @@
       <h3>A healthy scrape hid missing data</h3>
       <p>Prometheus could reach an exporter, but application metrics were missing. I traced the problem through exporter logs and restored collection.</p>
       <p class="fix"><strong>Outcome.</strong> Added and tested an alert that detects missing metrics while the exporter is still reachable.</p>
+      <details class="case-detail">
+        <summary>What I checked</summary>
+        <p>I compared scrape health with the application series the dashboard needed. After the fix, I verified that the series returned and that the alert cleared when data resumed.</p>
+      </details>
     </article>
     <article class="card incident" id="recovery" style="--accent:var(--magenta)">
       <p class="top"><span class="sev">Linux recovery</span></p>
       <h3>Repaired ownership on 29,048 system paths</h3>
       <p>I reconstructed expected file ownership using verified package archives and reviewed local exceptions.</p>
       <p class="fix"><strong>Outcome.</strong> Verified every planned path and confirmed scheduled jobs ran again without rebooting the host.</p>
+      <details class="case-detail">
+        <summary>What I checked</summary>
+        <p>I used archives matching the installed package versions as the ownership baseline. I checked that file contents were preserved and watched a normal scheduler run complete after the repair.</p>
+      </details>
     </article>
     <article class="card incident" id="backups" style="--accent:var(--gold)">
       <p class="top"><span class="sev">Backup automation</span></p>
       <h3>Made backup transfers retry automatically</h3>
       <p>Backups completed locally, but their copies often missed the destination’s availability window. I added a retry job for pending transfers.</p>
       <p class="fix"><strong>Outcome.</strong> Verified transferred archives by checksum and added a metric for the last successful transfer.</p>
+      <details class="case-detail">
+        <summary>What I checked</summary>
+        <p>The retry job sends pending archives and skips existing copies. I verified newly copied archives against their source checksums and checked that the transfer metric recorded a successful run.</p>
+      </details>
     </article>
   </div>
 </section>
