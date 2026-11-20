@@ -1,97 +1,17 @@
-# Personal Homelab project
+# Raspberry Pi homelab
 
-**📖 Project site: [dimpourn.github.io/sh_lab](https://dimpourn.github.io/sh_lab/)** — full write-up of the current architecture, security posture, and incidents/lessons learned. The latest version also lives in [`homeLab/pi5-homelab.md`](homeLab/pi5-homelab.md).
+A personal infrastructure project by Dimitris Pournatzis. I use a Raspberry Pi 5 to get hands-on experience with Linux administration, container operations, private networking, monitoring, and recovery.
 
-## Overview:
-Homelab setup for me to practice creating, securing and maintaining services with the help of Docker and Rasberry Pi
-## Key Tools and Features:
-- **Vaultwarden** (password manager)
-- **Caddy** (Reverse Proxy)
-- **Rasberry Pi 5** (Pi-Hole)
-- **Docker** (Container)
-- **Zero-trust networking** via Tailscale with automatic HTTPS
-- **Network-wide protection** - Pi-hole blocks ads/trackers for entire network
-- **Privacy-first DNS** - Unbound for recursive DNS (no third-party resolvers)
-- **Automated updates** - Watchtower keeps containers current with notifications
-- **Real-time monitoring** - Uptime Kuma tracks all services
-- **Self-hosted password manager** - Vaultwarden (Bitwarden-compatible)
-- **Private photo cloud** - Immich with AI-powered organization
+[View the project portfolio](https://dimpourn.github.io/sh_lab/)
 
-## Pi-hole Setup
-### Blocklists
+## Selected work
 
-**Default lists:**
-- StevenBlack's Unified Hosts List
-- Malicious domains list
-- Ad-serving domains
+- **Observability.** Diagnosed a healthy Prometheus scrape that was missing application telemetry, then added and tested a missing-metrics alert.
+- **Linux recovery.** Rebuilt a system file ownership baseline from verified packages and local exceptions. Verified the repair across 29,048 paths and confirmed scheduled jobs ran again.
+- **Backup automation.** Added retries for delayed backup copies, verified the transferred archives using checksums, and published transfer freshness as a monitoring metric.
 
-**Custom additions:**
-- Tracking and telemetry domains
-- Crypto-mining domains
-- Adult content (optional)
+## Website
 
-**Total domains blocked:** ~1.2M+
+GitHub Pages serves the static portfolio from `docs/`. The page uses local assets and requires no build step.
 
-## Vaultwarden Setup
-### Decided to use Vaultwardens self-host, Bitwarden as my password manager.
-
-- Through Docker I ran Vaultwarden.
--  I also registered a subdomain to make everything a tiny bit more clean and tidy though I went with the free option of DuckDNS.( i am a uni student after all ).
--  With the help of chatgpt, i used a script to automate the update of my ip so i dont have to do it manually.
-  ### update 7/10/2025
-- set up subdomain with DUCKDNS.
-- Got https certificate through LetsEncrypt and made the https version of the site with reverse proxy Caddy.
-- Disabled logins for better security.
-- Found out i was behind a CGNAT and changed the ipv6 to ipv4 so its compatible with most devices.
-
-
-## Uptime Kuma Setup
-**Setup Date:** December 15, 2025  
-**Host:** Raspberry Pi 5 (pi5)  
-**Docker Network Mode:** Host  
-**Access Method:** Tailscale
-
-
-### Services Monitored
-- **Pi-hole**
-- **Unbound**
-- **Vaultwarden**
-- **Immich**
-- **Tailscale**
-
-## Docker Compose Configuration
-
-### Uptime Kuma Setup
-```yaml
-services:
-  uptime-kuma:
-    image: louislam/uptime-kuma:1
-    container_name: uptime-kuma
-    volumes:
-      - ./data:/app/data
-    network_mode: "host"  # Critical for accessing localhost services
-    restart: unless-stopped
-```
-
-## Notification Setup
-
-### Ntfy Configuration
-**Service:** ntfy.sh (public instance)  
-**Method:** Push notifications via mobile app  
-
-#### Alert Behavior
-- **Down Notification:** Immediate alert when service fails
-- **Up Notification:** Alert when service recovers
-- **All monitors:** Notifications enabled by default
-- **Critical services:** Vaultwarden, SSH, DNS get priority
-
-
-## Resources
-
-- **Uptime Kuma:** https://github.com/louislam/uptime-kuma
-- **Ntfy:** https://ntfy.sh
-- **Tailscale:** https://tailscale.com
-- **Pi-hole:** https://pi-hole.net
-- **Unbound:** https://nlnetlabs.nl/projects/unbound
-- **Vaultwarden:** https://github.com/dani-garcia/vaultwarden
-- **Immich:** https://immich.app
+Preview it locally with `python3 -m http.server --bind localhost --directory docs 8080`.
