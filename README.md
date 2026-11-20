@@ -12,6 +12,6 @@ A personal infrastructure project by Dimitris Pournatzis. I use a Raspberry Pi 5
 
 ## Website
 
-GitHub Pages serves the static portfolio from `docs/`. The page uses local assets and requires no build step.
+GitHub Pages serves the static portfolio from `docs/`. The Descent tour uses local fonts and a bundled Three.js scene. It requires no build step.
 
 Preview it locally with `python3 -m http.server --bind localhost --directory docs 8080`.
