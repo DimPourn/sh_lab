@@ -1046,12 +1046,16 @@ if (typeof screenDialog.showModal === 'function') {
 
   screenDialog.addEventListener('close', () => {
     if (linkedPractice) {
-      const hash = '#' + linkedPractice.id;
-      if (window.location.hash !== hash) window.history.pushState(null, '', hash);
-      linkedPractice.tabIndex = -1;
-      linkedPractice.focus({ preventScroll: true });
-      linkedPractice.scrollIntoView({ behavior: paused ? 'instant' : 'smooth' });
+      const target = linkedPractice;
       linkedPractice = undefined;
+      const hash = '#' + target.id;
+      if (window.location.hash !== hash) window.history.pushState(null, '', hash);
+      target.tabIndex = -1;
+      requestAnimationFrame(() => {
+        if (screenDialog.open) return;
+        target.focus({ preventScroll: true });
+        target.scrollIntoView({ behavior: paused ? 'instant' : 'smooth' });
+      });
     } else {
       lastScreen?.focus({ preventScroll: true });
     }
