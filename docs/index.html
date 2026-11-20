@@ -6,14 +6,14 @@
 <title>Descent — Raspberry Pi Homelab | Dimitris Pournatzis</title>
 <meta name="description" content="Dimitris Pournatzis’s cybersecurity homelab portfolio, with a 3D tour and case studies in detection, Linux recovery, and backup verification.">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#081210">
+<meta name="theme-color" content="#0b0f19">
 <link rel="canonical" href="https://dimpourn.github.io/sh_lab/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23081210'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23a5f78d'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2374dccc' stroke-width='1.4' opacity='.8'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23e4ce8b' stroke-width='1' opacity='.5'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0f19'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%239ddfff'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23b6baff' stroke-width='1.4' opacity='.8'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23f7c784' stroke-width='1' opacity='.5'/%3E%3C/svg%3E">
 <meta property="og:title" content="Descent — Raspberry Pi Homelab">
 <meta property="og:description" content="Explore defense in depth, monitoring, and recovery in Dimitris Pournatzis’s Raspberry Pi homelab.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://dimpourn.github.io/sh_lab/">
-<link rel="stylesheet" href="./site.css">
+<link rel="stylesheet" href="./site.css?v=soc">
 </head>
 <body>
 
@@ -37,7 +37,10 @@
 
 <main id="main">
 <header class="hero shell" id="top">
-  <div class="hero-grid">
+  <div class="room" id="soc-room">
+    <div class="room-art" aria-hidden="true">
+      <img src="./assets/soc-room.webp" alt="" width="1600" height="900" fetchpriority="high">
+    </div>
     <div class="hero-copy">
       <p class="eyebrow" data-hero>Dimitris Pournatzis <span> / </span> Cybersecurity homelab</p>
       <h1><span class="l" data-hero>Security in</span><span class="l grad" data-hero>practice.</span></h1>
@@ -48,7 +51,14 @@
       </div>
     </div>
 
-    <div class="console" id="lab-console" data-view="access" data-hero>
+    <div class="room-screens" role="group" aria-label="Zoom into an illustrated SOC screen" hidden>
+      <button class="room-screen" type="button" data-screen="access" aria-haspopup="dialog" aria-controls="screen-dialog"><span>Access</span></button>
+      <button class="room-screen" type="button" data-screen="monitoring" aria-haspopup="dialog" aria-controls="screen-dialog"><span>Monitoring</span></button>
+      <button class="room-screen" type="button" data-screen="recovery" aria-haspopup="dialog" aria-controls="screen-dialog"><span>Recovery</span></button>
+    </div>
+  </div>
+
+    <div class="console" id="lab-console" data-view="access">
       <div class="console-toolbar">
         <span><span class="console-icon" aria-hidden="true"></span>Lab viewer</span>
         <span class="console-type">Illustration</span>
@@ -66,6 +76,19 @@
           <div class="scope-core"><span></span></div>
           <i class="scope-node node-a"></i><i class="scope-node node-b"></i><i class="scope-node node-c"></i>
         </div>
+        <div class="scope-chart">
+          <div class="scope-wave"></div>
+          <div class="scope-bars">
+            <i style="--level:28%"></i><i style="--level:55%"></i><i style="--level:40%"></i><i style="--level:59%"></i>
+            <i style="--level:48%"></i><i style="--level:72%"></i><i style="--level:81%"></i><i style="--level:38%"></i>
+            <i style="--level:52%"></i><i style="--level:68%"></i><i style="--level:45%"></i><i style="--level:84%"></i>
+            <i style="--level:74%"></i><i style="--level:63%"></i><i style="--level:89%"></i><i style="--level:55%"></i>
+          </div>
+        </div>
+        <div class="scope-history">
+          <div class="scope-events"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="scope-ranges"><i></i><i></i><i></i></div>
+        </div>
         <span class="scope-corner top-left"></span><span class="scope-corner top-right"></span>
         <span class="scope-corner bottom-left"></span><span class="scope-corner bottom-right"></span>
       </div>
@@ -82,7 +105,6 @@
         <a href="#recovery-practice">How it works</a>
       </div>
     </div>
-  </div>
 
   <dl class="stats" data-hero>
     <div class="stat"><dt>Platform</dt><dd>Raspberry Pi 5</dd></div>
@@ -281,12 +303,23 @@
   </div>
 </footer>
 
+<dialog class="screen-dialog" id="screen-dialog" aria-label="Lab viewer">
+  <div class="screen-focus" aria-hidden="true"></div>
+  <div class="screen-dialog-layout">
+    <div class="screen-view" id="focused-screen">
+      <form class="screen-return" method="dialog">
+        <button type="submit" autofocus>Back to the room</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
 <script type="importmap">
 { "imports": { "three": "./vendor/three.module.js" } }
 </script>
 <script src="./vendor/gsap.min.js" defer></script>
 <script src="./vendor/ScrollTrigger.min.js" defer></script>
-<script type="module" src="./app.js"></script>
+<script type="module" src="./app.js?v=soc"></script>
 
 </body>
 </html>

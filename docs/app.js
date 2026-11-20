@@ -758,7 +758,7 @@ const Scene = (() => {
     renderer.setPixelRatio(DPR);
     renderer.setClearColor(0x000000, 0);
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x081210, 0.011);
+    scene.fog = new THREE.FogExp2(0x0b0f19, 0.011);
     camera = new THREE.PerspectiveCamera(62, 1, 0.1, 400);
 
     // starfield / dust spanning the whole descent
@@ -980,9 +980,17 @@ const labViewer = doc.getElementById('lab-console');
 const tabList = labViewer.querySelector('[role="tablist"]');
 const viewerTabs = [...tabList.querySelectorAll('[role="tab"]')];
 const viewerPanels = viewerTabs.map((tab) => doc.getElementById(tab.getAttribute('aria-controls')));
+const screenDialog = doc.getElementById('screen-dialog');
+const screenGroup = doc.querySelector('.room-screens');
+const screenButtons = [...screenGroup.querySelectorAll('.room-screen')];
+let lastScreen;
+let linkedPractice;
 
 function selectViewerTab(active) {
   labViewer.dataset.view = viewerTabs[active].dataset.view;
+  const screenStyle = getComputedStyle(screenButtons[active]);
+  screenDialog.style.setProperty('--view-x', screenStyle.getPropertyValue('--screen-x'));
+  screenDialog.style.setProperty('--view-y', screenStyle.getPropertyValue('--screen-y'));
   viewerTabs.forEach((tab, i) => {
     const selected = i === active;
     tab.setAttribute('aria-selected', String(selected));
@@ -1010,6 +1018,45 @@ viewerTabs.forEach((tab, index) => {
   });
 });
 tabList.hidden = false;
+
+if (typeof screenDialog.showModal === 'function') {
+  doc.getElementById('focused-screen').append(labViewer);
+  screenGroup.hidden = false;
+
+  for (const button of screenButtons) {
+    button.addEventListener('click', () => {
+      lastScreen = button;
+      selectViewerTab(viewerTabs.findIndex((tab) => tab.dataset.view === button.dataset.screen));
+      screenDialog.showModal();
+    });
+  }
+
+  screenDialog.addEventListener('click', (event) => {
+    if (event.target.classList.contains('screen-dialog-layout')) screenDialog.close();
+  });
+
+  labViewer.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href^="#"]');
+    if (!link || !screenDialog.open || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    linkedPractice = doc.getElementById(link.hash.slice(1));
+    if (!linkedPractice) return;
+    event.preventDefault();
+    screenDialog.close();
+  });
+
+  screenDialog.addEventListener('close', () => {
+    if (linkedPractice) {
+      const hash = '#' + linkedPractice.id;
+      if (window.location.hash !== hash) window.history.pushState(null, '', hash);
+      linkedPractice.tabIndex = -1;
+      linkedPractice.focus({ preventScroll: true });
+      linkedPractice.scrollIntoView({ behavior: paused ? 'instant' : 'smooth' });
+      linkedPractice = undefined;
+    } else {
+      lastScreen?.focus({ preventScroll: true });
+    }
+  });
+}
 
 for (const button of layerButtons) {
   button.addEventListener('click', () => scrollToLayer(Number(button.dataset.layer), 'smooth'));
