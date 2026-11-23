@@ -2,324 +2,513 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Descent — Raspberry Pi Homelab | Dimitris Pournatzis</title>
-<meta name="description" content="Dimitris Pournatzis’s cybersecurity homelab portfolio, with a 3D tour and case studies in detection, Linux recovery, and backup verification.">
-<meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#0b0f19">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>sh_lab · Raspberry Pi 5 homelab by Dimitris Pournatzis</title>
+<meta name="description" content="sh_lab is Dimitris Pournatzis’s Raspberry Pi 5 homelab for practicing Linux hardening, private networking, monitoring, and recovery. No open ports, six layers of defense, and incident reports with verification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#eef0ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1311" media="(prefers-color-scheme: dark)">
 <link rel="canonical" href="https://dimpourn.github.io/sh_lab/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0f19'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%239ddfff'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23b6baff' stroke-width='1.4' opacity='.8'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23f7c784' stroke-width='1' opacity='.5'/%3E%3C/svg%3E">
-<meta property="og:title" content="Descent — Raspberry Pi Homelab">
-<meta property="og:description" content="Explore defense in depth, monitoring, and recovery in Dimitris Pournatzis’s Raspberry Pi homelab.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='5' width='30' height='22' rx='3' fill='%231e5e43'/%3E%3Ccircle cx='5.5' cy='9.5' r='1.6' fill='%23d6a84a'/%3E%3Ccircle cx='5.5' cy='22.5' r='1.6' fill='%23d6a84a'/%3E%3Crect x='12' y='11' width='9' height='9' rx='1' fill='%23c9cfcb'/%3E%3C/svg%3E">
+<meta property="og:title" content="sh_lab · Raspberry Pi 5 homelab">
+<meta property="og:description" content="One Raspberry Pi 5. No open ports. Six layers of defense, monitored end to end, with incident reports.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://dimpourn.github.io/sh_lab/">
-<link rel="stylesheet" href="./site.css?v=soc">
+<link rel="preload" href="./assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="./assets/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./site.css?v=sheet2">
 </head>
 <body>
 
-<canvas id="scene" aria-hidden="true"></canvas>
-<div class="veil" aria-hidden="true"></div>
-<div class="progress" aria-hidden="true"></div>
-
 <a class="skip-link" href="#main">Skip to content</a>
-<nav class="nav" aria-label="Main">
-  <div class="nav-inner shell">
-    <a class="brand" href="#top"><span class="brand-icon" aria-hidden="true"></span>Descent<span class="brand-note"> / Homelab</span></a>
-    <div class="nav-links">
-      <a href="#descent">3D tour</a>
-      <a href="#security">Controls</a>
-      <a href="#incidents">Case studies</a>
-      <a href="#stack">Stack</a>
-    </div>
-    <button class="motion-btn" id="motion" type="button" aria-label="Motion" aria-pressed="true" hidden><span class="d" aria-hidden="true"></span><span id="motion-label">Motion on</span></button>
+
+<header class="masthead">
+  <div class="shell masthead-inner">
+    <a class="brand" href="#top" aria-label="sh_lab, back to top">
+      <svg class="brand-mark" viewBox="0 0 32 22" aria-hidden="true"><rect x="0.5" y="0.5" width="31" height="21" rx="3"/><circle cx="4.5" cy="4.5" r="1.6"/><circle cx="4.5" cy="17.5" r="1.6"/><rect class="die" x="11" y="6" width="9" height="9" rx="1"/></svg>
+      <span>sh_lab</span>
+    </a>
+    <nav class="masthead-nav" aria-label="Sections">
+      <a href="#stackup">Stack-up</a>
+      <a href="#signals">Monitoring</a>
+      <a href="#hardening">Hardening</a>
+      <a href="#parts">Parts</a>
+      <a href="#incidents">Incidents</a>
+    </nav>
+    <p class="masthead-rev">Rev 2026.11</p>
   </div>
-</nav>
-
-<main id="main">
-<header class="hero shell" id="top">
-  <div class="room" id="soc-room">
-    <div class="room-art" aria-hidden="true">
-      <img src="./assets/soc-room.webp" alt="" width="1600" height="900" fetchpriority="high">
-    </div>
-    <div class="hero-copy">
-      <p class="eyebrow" data-hero>Dimitris Pournatzis <span> / </span> Cybersecurity homelab</p>
-      <h1><span class="l" data-hero>Security in</span><span class="l grad" data-hero>practice.</span></h1>
-      <p class="lede" data-hero>I run a Raspberry Pi homelab to practice securing Linux services, detecting silent failures, and verifying recovery.</p>
-      <div class="cta" data-hero>
-        <a class="btn primary" href="#descent">Explore the 3D tour</a>
-        <a class="btn ghost" href="#incidents">Read case studies</a>
-      </div>
-    </div>
-
-    <div class="room-screens" role="group" aria-label="Zoom into an illustrated SOC screen" hidden>
-      <button class="room-screen" type="button" data-screen="access" aria-haspopup="dialog" aria-controls="screen-dialog"><span>Access</span></button>
-      <button class="room-screen" type="button" data-screen="monitoring" aria-haspopup="dialog" aria-controls="screen-dialog"><span>Monitoring</span></button>
-      <button class="room-screen" type="button" data-screen="recovery" aria-haspopup="dialog" aria-controls="screen-dialog"><span>Recovery</span></button>
-    </div>
-  </div>
-
-    <div class="console" id="lab-console" data-view="access">
-      <div class="console-toolbar">
-        <span><span class="console-icon" aria-hidden="true"></span>Lab viewer</span>
-        <span class="console-type">Illustration</span>
-      </div>
-      <div class="console-tabs" role="tablist" aria-label="Explore the lab by topic" hidden>
-        <button id="access-tab" type="button" role="tab" aria-selected="true" aria-controls="access-view" data-view="access">Access</button>
-        <button id="monitoring-tab" type="button" role="tab" aria-selected="false" aria-controls="monitoring-view" data-view="monitoring" tabindex="-1">Monitoring</button>
-        <button id="recovery-tab" type="button" role="tab" aria-selected="false" aria-controls="recovery-view" data-view="recovery" tabindex="-1">Recovery</button>
-      </div>
-      <div class="scope" aria-hidden="true">
-        <div class="scope-grid"></div>
-        <div class="scope-radar">
-          <div class="scope-sweep"></div>
-          <div class="scope-orbit"></div>
-          <div class="scope-core"><span></span></div>
-          <i class="scope-node node-a"></i><i class="scope-node node-b"></i><i class="scope-node node-c"></i>
-        </div>
-        <div class="scope-chart">
-          <div class="scope-wave"></div>
-          <div class="scope-bars">
-            <i style="--level:28%"></i><i style="--level:55%"></i><i style="--level:40%"></i><i style="--level:59%"></i>
-            <i style="--level:48%"></i><i style="--level:72%"></i><i style="--level:81%"></i><i style="--level:38%"></i>
-            <i style="--level:52%"></i><i style="--level:68%"></i><i style="--level:45%"></i><i style="--level:84%"></i>
-            <i style="--level:74%"></i><i style="--level:63%"></i><i style="--level:89%"></i><i style="--level:55%"></i>
-          </div>
-        </div>
-        <div class="scope-history">
-          <div class="scope-events"><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="scope-ranges"><i></i><i></i><i></i></div>
-        </div>
-        <span class="scope-corner top-left"></span><span class="scope-corner top-right"></span>
-        <span class="scope-corner bottom-left"></span><span class="scope-corner bottom-right"></span>
-      </div>
-      <div id="access-view" class="console-panel">
-        <div><h2>Private access</h2><p>Encrypted access, internal HTTPS, and separate controls at the host and container layers.</p></div>
-        <a href="#access-practice">How it works</a>
-      </div>
-      <div id="monitoring-view" class="console-panel" hidden>
-        <div><h2>Detect silent failures</h2><p>Check endpoint reachability, expected application metrics, and alert delivery.</p></div>
-        <a href="#monitoring-practice">How it works</a>
-      </div>
-      <div id="recovery-view" class="console-panel" hidden>
-        <div><h2>Verify recovery</h2><p>Track backup copies through delivery and document how to restore them.</p></div>
-        <a href="#recovery-practice">How it works</a>
-      </div>
-    </div>
-
-  <dl class="stats" data-hero>
-    <div class="stat"><dt>Platform</dt><dd>Raspberry Pi 5</dd></div>
-    <div class="stat"><dt>Architecture</dt><dd>6 layers</dd></div>
-    <div class="stat"><dt>Hands-on work</dt><dd>3 case studies</dd></div>
-    <div class="stat"><dt>File ownership repaired</dt><dd>29,048 paths</dd></div>
-  </dl>
 </header>
 
-<section class="descent flat" id="descent" aria-label="Infrastructure layers">
-  <p class="flat-intro shell">Defense in depth</p>
-  <div class="descent-stage">
-    <div class="layer-counter">
-      <p class="layer-position"><span id="layer-num">01</span> / 06 <span class="layer-divider">·</span> Defense in depth</p>
-      <div class="layer-track" role="group" aria-label="Jump to a layer">
-        <button type="button" data-layer="0" aria-label="Layer 1, Network edge" aria-current="step"></button>
-        <button type="button" data-layer="1" aria-label="Layer 2, Private mesh"></button>
-        <button type="button" data-layer="2" aria-label="Layer 3, HTTPS"></button>
-        <button type="button" data-layer="3" aria-label="Layer 4, Host firewall"></button>
-        <button type="button" data-layer="4" aria-label="Layer 5, Segmentation"></button>
-        <button type="button" data-layer="5" aria-label="Layer 6, DNS"></button>
+<main id="main">
+
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="shell hero-grid">
+    <div class="hero-copy">
+      <p class="label">Dimitris Pournatzis · Cybersecurity homelab</p>
+      <h1 id="hero-title">One Raspberry Pi&nbsp;5. <span>No open ports.</span></h1>
+      <p class="lede">sh_lab is the homelab where I practice Linux hardening, private networking, monitoring, and recovery. Every service sits behind an encrypted mesh, Prometheus watches all of it, and the backups leave the board.</p>
+      <div class="cta">
+        <a class="btn btn-solid" href="#stackup">See how it’s secured</a>
+        <a class="btn btn-line" href="#incidents">Read the incident reports</a>
       </div>
     </div>
-    <div class="layers-overlay">
-      <article class="layer" style="--accent:#a5f78d">
-        <div class="lnum">01 · Network edge</div>
-        <h2>Keep services <span class="a">private.</span></h2>
-        <p class="desc">I designed the lab for private use. Keeping application access off the public internet reduces the exposure I have to manage.</p>
-        <p class="meta">Minimize public exposure</p>
-      </article>
-      <article class="layer" style="--accent:#86e9b0">
-        <div class="lnum">02 · Private mesh</div>
-        <h2>Connect devices <span class="a">securely.</span></h2>
-        <p class="desc">I use Tailscale to connect my devices and administer the lab. The mesh provides encrypted connectivity between authorized devices.</p>
-        <p class="meta">Tailscale · encrypted remote access</p>
-      </article>
-      <article class="layer" style="--accent:#72decc">
-        <div class="lnum">03 · Service access</div>
-        <h2>Use HTTPS <span class="a">internally.</span></h2>
-        <p class="desc">A reverse proxy provides HTTPS for internal web applications and handles certificate renewal.</p>
-        <p class="meta">Reverse proxy · certificate automation</p>
-      </article>
-      <article class="layer" style="--accent:#7ccde9">
-        <div class="lnum">04 · Host firewall</div>
-        <h2>Limit <span class="a">traffic.</span></h2>
-        <p class="desc">Host firewall rules add a layer of control over which connections services need.</p>
-        <p class="meta">Host-level traffic policy</p>
-      </article>
-      <article class="layer" style="--accent:#abafff">
-        <div class="lnum">05 · Segmentation</div>
-        <h2>Separate <span class="a">workloads.</span></h2>
-        <p class="desc">Docker networks let me group related containers and limit unnecessary connections between workloads.</p>
-        <p class="meta">Docker networking · service isolation</p>
-      </article>
-      <article class="layer" style="--accent:#e4ce8b">
-        <div class="lnum">06 · DNS</div>
-        <h2>Filter and <span class="a">validate DNS.</span></h2>
-        <p class="desc">Pi-hole handles DNS filtering. Unbound carries out recursive lookups and validates DNSSEC signatures.</p>
-        <p class="meta">Pi-hole · Unbound · DNSSEC</p>
-      </article>
+
+    <figure class="board-fig" id="board-fig">
+      <svg class="board" viewBox="0 0 1000 700" role="img" aria-labelledby="board-title board-desc">
+        <title id="board-title">Raspberry Pi 5, top view</title>
+        <desc id="board-desc">Technical drawing of the Raspberry Pi 5 that runs sh_lab, with four numbered callouts: the Ethernet port, the BCM2712 processor, the activity LED, and the microSD slot on the underside.</desc>
+        <defs>
+          <pattern id="gpio-pins" x="127.3" y="87.3" width="25.4" height="25.4" patternUnits="userSpaceOnUse">
+            <rect x="8" y="8" width="9.4" height="9.4" class="pad"/>
+          </pattern>
+          <pattern id="ffc-pins" x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse">
+            <rect x="1" y="1.5" width="4" height="4" class="pad"/>
+          </pattern>
+        </defs>
+
+        <rect class="pcb" x="60" y="70" width="850" height="560" rx="30"/>
+        <rect class="pcb-edge" x="68" y="78" width="834" height="544" rx="24"/>
+
+        <g class="traces" aria-hidden="true">
+          <path d="M745 168 H640 V300"/>
+          <path d="M745 330 H670"/>
+          <path d="M600 139 V300 M620 139 V300"/>
+          <path d="M560 334 H500 M560 343 H500 M560 352 H500 M560 361 H500 M560 370 H500 M560 379 H500"/>
+          <path d="M300 268 H330 M300 280 H330 M300 292 H330 M300 304 H330 M300 316 H330 M300 328 H330 M300 340 H330 M300 352 H330 M300 364 H330"/>
+          <path d="M360 400 V530 L319 571 V585 M374 400 V536 L333 577 V585"/>
+          <path d="M450 400 V540 L453 543 V585 M464 400 V532 L467 535 V585"/>
+          <path d="M172 565 V530"/>
+          <path d="M210 500 H312 L345 467 V400"/>
+          <path d="M520 400 V545 L555 575 M535 400 V540 L645 575"/>
+          <path id="route" d="M738 505 H700 V352 H498"/>
+        </g>
+        <g class="packets" id="packets" aria-hidden="true"></g>
+
+        <g class="part" data-part="hole" aria-hidden="true">
+          <circle class="ring" cx="95" cy="105" r="15"/><circle class="hole" cx="95" cy="105" r="9"/>
+          <circle class="ring" cx="675" cy="105" r="15"/><circle class="hole" cx="675" cy="105" r="9"/>
+          <circle class="ring" cx="95" cy="595" r="15"/><circle class="hole" cx="95" cy="595" r="9"/>
+          <circle class="ring" cx="675" cy="595" r="15"/><circle class="hole" cx="675" cy="595" r="9"/>
+        </g>
+
+        <g class="part" aria-hidden="true">
+          <rect class="plastic" x="126" y="86" width="511" height="53" rx="3"/>
+          <rect x="127.3" y="87.3" width="508" height="50.8" fill="url(#gpio-pins)"/>
+          <text class="silk" x="126" y="160">J8 · GPIO</text>
+          <rect class="plastic-light" x="700" y="92" width="44" height="26" rx="2"/>
+          <text class="silk" x="700" y="138">FAN</text>
+        </g>
+
+        <g class="part" aria-hidden="true">
+          <rect class="metal" x="745" y="100" width="190" height="135" rx="4"/>
+          <path class="seam" d="M760 167 H935 M760 118 V217"/>
+          <rect class="metal" x="745" y="262" width="190" height="135" rx="4"/>
+          <path class="seam" d="M760 329 H935 M760 280 V379"/>
+          <text class="silk" x="770" y="253">USB</text>
+          <text class="silk" x="770" y="415">USB</text>
+        </g>
+
+        <g class="part" data-part="eth">
+          <rect class="metal" x="720" y="430" width="215" height="160" rx="4"/>
+          <rect class="seam-fill" x="742" y="452" width="150" height="116" rx="3"/>
+          <path class="seam" d="M892 470 H935 M892 550 H935"/>
+          <text class="silk" x="722" y="612">ETH</text>
+        </g>
+
+        <g class="part" aria-hidden="true">
+          <rect class="chip" x="560" y="300" width="110" height="110" rx="4"/>
+          <text class="chip-text" x="615" y="360" text-anchor="middle">RP1</text>
+        </g>
+
+        <g class="part" data-part="soc">
+          <rect class="chip" x="322" y="222" width="186" height="186" rx="6"/>
+          <rect class="metal lid" x="336" y="236" width="158" height="158" rx="4"/>
+          <text class="lid-text" x="415" y="312" text-anchor="middle">BCM2712</text>
+          <text class="lid-sub" x="415" y="336" text-anchor="middle">4 × A76 · 2.4 GHz</text>
+        </g>
+
+        <g class="part" aria-hidden="true">
+          <rect class="chip" x="190" y="250" width="110" height="130" rx="4"/>
+          <text class="chip-text small" x="245" y="320" text-anchor="middle">LPDDR4X</text>
+          <rect class="chip" x="150" y="470" width="60" height="60" rx="3"/>
+          <text class="silk" x="218" y="528">PMIC</text>
+        </g>
+
+        <g class="part" aria-hidden="true">
+          <rect class="metal" x="127" y="565" width="90" height="75" rx="10"/>
+          <text class="silk" x="127" y="556">PWR IN</text>
+          <rect class="metal" x="283" y="585" width="72" height="55" rx="6"/>
+          <rect class="metal" x="417" y="585" width="72" height="55" rx="6"/>
+          <text class="silk" x="290" y="572">HDMI0</text>
+          <text class="silk" x="424" y="572">HDMI1</text>
+          <rect class="plastic-light" x="520" y="575" width="70" height="22" rx="2"/>
+          <rect class="plastic-light" x="610" y="575" width="70" height="22" rx="2"/>
+          <text class="silk" x="520" y="616">CAM/DISP</text>
+        </g>
+
+        <g class="part" aria-hidden="true">
+          <rect class="plastic-light" x="60" y="180" width="26" height="112" rx="2"/>
+          <rect x="66" y="184" width="14" height="105" fill="url(#ffc-pins)"/>
+          <text class="silk" x="96" y="200">PCIe</text>
+          <rect class="plastic" x="54" y="508" width="20" height="32" rx="3"/>
+        </g>
+
+        <g class="part" data-part="sd">
+          <rect class="hidden-line" x="42" y="300" width="148" height="118" rx="4"/>
+          <text class="silk dim" x="100" y="364">µSD</text>
+        </g>
+
+        <g class="part" data-part="led">
+          <circle class="led-pwr" cx="102" cy="436" r="7"/>
+          <circle class="led-act" cx="102" cy="456" r="7"/>
+          <text class="silk" x="116" y="441">PWR</text>
+          <text class="silk" x="116" y="461">ACT</text>
+        </g>
+
+        <text class="silk mark" x="560" y="472">SH_LAB · PI 5</text>
+        <text class="silk mark" x="560" y="492">REV 2026.11</text>
+
+
+        <g class="balloons" aria-hidden="true">
+          <path class="leader" d="M935 510 H951"/>
+          <circle cx="970" cy="510" r="19"/><text x="970" y="517" text-anchor="middle">1</text>
+          <path class="leader" d="M494 236 L527 207"/>
+          <circle cx="541" cy="194" r="19"/><text x="541" y="201" text-anchor="middle">2</text>
+          <path class="leader" d="M95 456 L44 506"/>
+          <circle cx="30" cy="520" r="19"/><text x="30" y="527" text-anchor="middle">3</text>
+          <path class="leader" d="M48 300 L32 262"/>
+          <circle cx="30" cy="243" r="19"/><text x="30" y="250" text-anchor="middle">4</text>
+        </g>
+      </svg>
+
+      <figcaption>
+        <ol class="legend">
+          <li><a href="#stackup" data-part="eth"><span class="balloon">1</span><span><strong>Ethernet</strong> Tailnet only. No ports are forwarded, so nothing here answers the open internet.</span></a></li>
+          <li><a href="#hardening" data-part="soc"><span class="balloon">2</span><span><strong>BCM2712</strong> Runs every service as a hardened container on its own network.</span></a></li>
+          <li><a href="#signals" data-part="led"><span class="balloon">3</span><span><strong>Activity LED</strong> Prometheus watches each service, and alerts reach my phone.</span></a></li>
+          <li><a href="#ir-03" data-part="sd"><span class="balloon">4</span><span><strong>microSD, underside</strong> Backups leave the board for a separate device and are checked by checksum.</span></a></li>
+        </ol>
+        <p class="fig-note">Fig. 1 · Top view, illustrative. Dashed outlines sit on the underside.</p>
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="shell">
+    <dl class="specs" aria-label="Key specifications">
+      <div><dt>Hardware</dt><dd>Raspberry Pi 5</dd></div>
+      <div><dt>Inbound ports open to the internet</dt><dd>0</dd></div>
+      <div><dt>Layers of defense</dt><dd>6</dd></div>
+      <div><dt>Alert path</dt><dd>Tested end to end</dd></div>
+      <div><dt>Largest repair</dt><dd>29,048 paths</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section" id="stackup" aria-labelledby="stackup-title">
+  <div class="shell">
+    <div class="sec-head">
+      <p class="label">Stack-up</p>
+      <div>
+        <h2 id="stackup-title">Six layers between the internet and a service.</h2>
+        <p>Read it like a cross-section of a circuit board. Traffic from the internet stops at the first layer. A request from one of my own devices passes every control on its way to a service, and the last layer filters the lookups that go back out.</p>
+      </div>
     </div>
-    <p class="descent-hint">Scroll or select a layer</p>
+
+    <div class="stack-wrap">
+      <div class="stack-heads" aria-hidden="true">
+        <span class="via-head via-head-public">Internet</span>
+        <span class="via-head via-head-mesh">My devices</span>
+      </div>
+      <ol class="stack" id="stack">
+        <li class="band cu">
+          <span class="lid">L1</span>
+          <div class="band-body">
+            <h3>Network edge</h3>
+            <p>No ports are forwarded on the router, so nothing on the Pi answers the open internet. A scan from outside finds nothing to talk to.</p>
+          </div>
+          <p class="band-tag">Router · zero port forwards</p>
+          <span class="stop" aria-hidden="true"></span>
+        </li>
+        <li class="band fr4">
+          <span class="lid">L2</span>
+          <div class="band-body">
+            <h3>Private mesh</h3>
+            <p>Tailscale connects my devices over WireGuard, each with its own key. Tailnet Lock is on, so a new device can’t join until a device I already trust signs it.</p>
+          </div>
+          <p class="band-tag">Tailscale · WireGuard · Tailnet Lock</p>
+        </li>
+        <li class="band cu">
+          <span class="lid">L3</span>
+          <div class="band-body">
+            <h3>Service access</h3>
+            <p>Services listen on localhost. A reverse proxy serves them over HTTPS inside the mesh and renews its own certificates.</p>
+          </div>
+          <p class="band-tag">Reverse proxy · automatic TLS</p>
+        </li>
+        <li class="band fr4">
+          <span class="lid">L4</span>
+          <div class="band-body">
+            <h3>Host firewall</h3>
+            <p>UFW allow-lists each Docker subnet for only the ports it needs. SSH is accepted over the tailnet and refused from the local network.</p>
+          </div>
+          <p class="band-tag">UFW · per-subnet rules</p>
+        </li>
+        <li class="band cu">
+          <span class="lid">L5</span>
+          <div class="band-body">
+            <h3>Segmentation</h3>
+            <p>Monitoring, proxy, and application containers sit on separate Docker networks. One compromised container can’t reach unrelated ones.</p>
+          </div>
+          <p class="band-tag">Docker bridge networks</p>
+        </li>
+        <li class="band fr4">
+          <span class="lid">L6</span>
+          <div class="band-body">
+            <h3>DNS, on the way out</h3>
+            <p>Pi-hole filters lookups for every device on the network. Unbound resolves recursively and validates DNSSEC.</p>
+            <p class="tested"><span class="pass">Tested</span> Queried domains with valid and deliberately broken signatures. The resolver rejected the broken ones.</p>
+          </div>
+          <p class="band-tag">Pi-hole · Unbound · DNSSEC</p>
+        </li>
+        <span class="via via-public" aria-hidden="true"></span>
+        <span class="via via-mesh" aria-hidden="true"></span>
+        <span class="packet" id="packet" aria-hidden="true"></span>
+      </ol>
+    </div>
   </div>
 </section>
 
-<section class="section shell" id="practices" aria-labelledby="practices-title">
-  <div class="sec-head reveal">
-    <h2 id="practices-title">How I operate the lab</h2>
-    <p>The design decisions behind each console view and how I verify them.</p>
+<section class="section" id="signals" aria-labelledby="signals-title">
+  <div class="shell">
+    <div class="sec-head">
+      <p class="label">Monitoring</p>
+      <div>
+        <h2 id="signals-title">When something breaks quietly, my phone finds out.</h2>
+        <p>Metrics and logs from the host, the containers, and each service flow into one place. Rules decide what counts as broken, and alerts arrive without anyone watching a dashboard.</p>
+      </div>
+    </div>
+
+    <div class="flow" role="list" aria-label="Monitoring signal path">
+      <div class="stage" role="listitem">
+        <p class="stage-label">Sources</p>
+        <ul class="nodes">
+          <li><span>Host exporter</span><small>CPU, memory, disk, temperature</small></li>
+          <li><span>Container metrics</span><small>Per-container usage</small></li>
+          <li><span>App exporters</span><small>DNS and service metrics</small></li>
+          <li><span>Endpoint probes</span><small>Does it answer?</small></li>
+          <li><span>Logs</span><small>Host and containers</small></li>
+        </ul>
+      </div>
+      <div class="stage" role="listitem">
+        <p class="stage-label">Collect</p>
+        <ul class="nodes">
+          <li class="key"><span>Prometheus</span><small>Stores metrics, evaluates alert rules</small></li>
+          <li class="key"><span>Loki + Alloy</span><small>Ships and indexes logs</small></li>
+        </ul>
+      </div>
+      <div class="stage" role="listitem">
+        <p class="stage-label">Route &amp; view</p>
+        <ul class="nodes">
+          <li class="key"><span>Alertmanager</span><small>Groups alerts and routes them</small></li>
+          <li><span>Grafana</span><small>Host, container, and DNS dashboards</small></li>
+        </ul>
+      </div>
+      <div class="stage stage-end" role="listitem">
+        <p class="stage-label">Reach</p>
+        <ul class="nodes">
+          <li class="key"><span>My phone</span><small>Push notification on failure and recovery</small></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div>
+        <h3>Answering is not the same as working.</h3>
+        <p>Probes ask whether each endpoint responds. A separate rule checks that the metrics I expect are arriving, because an exporter can stay reachable while the data behind it disappears. <a href="#ir-01">That happened once.</a></p>
+      </div>
+      <div>
+        <h3>The alert path is tested too.</h3>
+        <p>I sent a synthetic alert through Alertmanager and confirmed it arrived on my phone. A rule that fires into a broken delivery pipeline protects nothing.</p>
+      </div>
+    </div>
   </div>
-  <div class="grid g-3 reveal">
-    <article class="card practice" id="access-practice" style="--accent:var(--signal)">
-      <h3>Access</h3>
-      <p>Authorized devices connect through an encrypted mesh. A reverse proxy handles HTTPS for internal web apps. Host firewall rules and separate Docker networks limit unnecessary communication between workloads.</p>
-      <p class="verification"><strong>Verification</strong> I tested recursive DNS using domains with valid and deliberately broken DNSSEC signatures and observed that the resolver rejected the invalid response.</p>
-      <a href="#security">See the security controls</a>
+</section>
+
+<section class="section" id="hardening" aria-labelledby="hardening-title">
+  <div class="shell">
+    <div class="sec-head">
+      <p class="label">Hardening</p>
+      <div>
+        <h2 id="hardening-title">Every container starts with nothing and asks for what it needs.</h2>
+        <p>The same pattern repeats across my Compose files. It’s applied wherever the image supports it, and exceptions are added back by name.</p>
+      </div>
+    </div>
+
+    <div class="harden">
+      <div class="code-card">
+        <p class="code-title"><span>compose.yaml</span><span>sanitized excerpt</span></p>
+        <pre class="code" tabindex="0" aria-label="Sanitized Docker Compose excerpt"><code><span class="k">services</span>:
+  <span class="k">exporter</span>:
+    <span class="k">image</span>: <span class="v">example/exporter</span>
+    <span class="k">user</span>: <span class="v">"1000:1000"</span>             <span class="b">1</span>
+    <span class="k">read_only</span>: <span class="v">true</span>               <span class="b">2</span>
+    <span class="k">cap_drop</span>: [<span class="v">ALL</span>]               <span class="b">3</span>
+    <span class="k">security_opt</span>:
+      - <span class="v">no-new-privileges:true</span>    <span class="b">4</span>
+    <span class="k">networks</span>: [<span class="v">monitoring</span>]        <span class="b">5</span>
+    <span class="k">secrets</span>: [<span class="v">scrape_token</span>]       <span class="b">6</span></code></pre>
+      </div>
+      <ol class="annotations">
+        <li><span class="balloon">1</span><div><h3>Unprivileged user</h3><p>The process runs under a mapped UID and GID instead of root.</p></div></li>
+        <li><span class="balloon">2</span><div><h3>Read-only root filesystem</h3><p>Nothing can rewrite the image at runtime. Paths that must be writable are mounted on purpose.</p></div></li>
+        <li><span class="balloon">3</span><div><h3>No Linux capabilities</h3><p>Everything is dropped first. A service that needs one gets it back with an explicit <code>cap_add</code>.</p></div></li>
+        <li><span class="balloon">4</span><div><h3>No privilege escalation</h3><p>Processes can’t gain privileges after start, even through setuid binaries.</p></div></li>
+        <li><span class="balloon">5</span><div><h3>One network</h3><p>The container joins only the bridge it needs, which keeps lateral movement short.</p></div></li>
+        <li><span class="balloon">6</span><div><h3>Secrets as files</h3><p>Tokens are mounted read-only and never written into version-controlled config. Prometheus reads its scrape token from a file.</p></div></li>
+      </ol>
+    </div>
+    <p class="aside"><strong>Reviewed updates.</strong> Stateful services are excluded from automatic image updates. Upgrades to anything that holds data get read, backed up, and applied by hand.</p>
+  </div>
+</section>
+
+<section class="section" id="parts" aria-labelledby="parts-title">
+  <div class="shell">
+    <div class="sec-head">
+      <p class="label">Parts list</p>
+      <div>
+        <h2 id="parts-title">What runs on the board.</h2>
+        <p>Open-source tools, each with one job. Reference designators group them the way a bill of materials would.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="bom">
+        <thead><tr><th scope="col">Ref</th><th scope="col">Part</th><th scope="col">Job</th></tr></thead>
+        <tbody>
+          <tr class="group"><th scope="rowgroup" colspan="3">Network and DNS</th></tr>
+          <tr><td>NET-1</td><th scope="row">Tailscale</th><td>Encrypted mesh between my devices, and the only way in from outside the house.</td></tr>
+          <tr><td>NET-2</td><th scope="row">Pi-hole</th><td>Filters DNS for every device on the network.</td></tr>
+          <tr><td>NET-3</td><th scope="row">Unbound</th><td>Resolves recursively and validates DNSSEC, with no third-party resolver.</td></tr>
+          <tr><td>NET-4</td><th scope="row">UFW</th><td>Host firewall with per-subnet allow rules.</td></tr>
+          <tr><td>NET-5</td><th scope="row">Reverse proxy</th><td>HTTPS for internal web apps, with automatic certificate renewal.</td></tr>
+        </tbody>
+        <tbody>
+          <tr class="group"><th scope="rowgroup" colspan="3">Platform and automation</th></tr>
+          <tr><td>SYS-1</td><th scope="row">Raspberry Pi 5</th><td>Runs Raspberry Pi OS and every workload in the lab.</td></tr>
+          <tr><td>SYS-2</td><th scope="row">Docker Compose</th><td>Declares each service with its networks and hardening.</td></tr>
+          <tr><td>SYS-3</td><th scope="row">systemd timers</th><td>Run recurring jobs and record whether they succeeded.</td></tr>
+          <tr><td>SYS-4</td><th scope="row">Shell scripts</th><td>Automate maintenance and report the outcome.</td></tr>
+          <tr><td>SYS-5</td><th scope="row">rsync</th><td>Copies backups off the board and retries pending transfers.</td></tr>
+          <tr><td>SYS-6</td><th scope="row">Git</th><td>History for configuration and runbooks.</td></tr>
+        </tbody>
+        <tbody>
+          <tr class="group"><th scope="rowgroup" colspan="3">Observability</th></tr>
+          <tr><td>OBS-1</td><th scope="row">Prometheus</th><td>Scrapes metrics and evaluates alert rules.</td></tr>
+          <tr><td>OBS-2</td><th scope="row">Alertmanager</th><td>Groups alerts and pushes them to my phone.</td></tr>
+          <tr><td>OBS-3</td><th scope="row">Grafana</th><td>Dashboards for the host, containers, and DNS.</td></tr>
+          <tr><td>OBS-4</td><th scope="row">Loki + Alloy</th><td>Collect and search host and container logs.</td></tr>
+          <tr><td>OBS-5</td><th scope="row">Exporters and probes</th><td>Measure host health, application metrics, and whether endpoints respond.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="incidents" aria-labelledby="incidents-title">
+  <div class="shell">
+    <div class="sec-head">
+      <p class="label">Incident reports</p>
+      <div>
+        <h2 id="incidents-title">Things that broke, and how I proved they were fixed.</h2>
+        <p>Each fix ends with a check I could observe, not with the first change that looked right.</p>
+      </div>
+    </div>
+
+    <article class="report" id="ir-01" aria-labelledby="ir-01-title">
+      <header class="report-meta">
+        <p class="report-id">IR-01</p>
+        <p class="report-cat">Monitoring and detection</p>
+        <p class="status"><span class="pass">Verified</span></p>
+      </header>
+      <div class="report-body">
+        <h3 id="ir-01-title">A healthy scrape hid missing data.</h3>
+        <dl class="fields">
+          <div><dt>Symptom</dt><dd>Prometheus could reach the exporter and the scrape looked healthy, but the application metrics a dashboard needed were gone.</dd></div>
+          <div><dt>Diagnosis</dt><dd>I compared scrape health with the series the dashboard relied on, then traced the gap through the exporter’s logs.</dd></div>
+          <div><dt>Fix</dt><dd>Restored collection, then added an alert for expected metrics that go missing while the exporter is still reachable.</dd></div>
+        </dl>
+        <div class="table-wrap">
+          <table class="matrix">
+            <caption>Alert rule test</caption>
+            <thead><tr><th scope="col">Input</th><th scope="col">Expected</th><th scope="col">Observed</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Metric present with a real zero</th><td>Stays quiet</td><td><span class="pass">Quiet</span></td></tr>
+              <tr><th scope="row">Series missing, exporter up</th><td>Fires</td><td><span class="pass">Fired</span></td></tr>
+              <tr><th scope="row">Data restored</th><td>Clears</td><td><span class="pass">Cleared</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </article>
-    <article class="card practice" id="monitoring-practice" style="--accent:var(--magenta)">
-      <h3>Monitoring</h3>
-      <p>Prometheus collects metrics and evaluates rules. Loki holds logs for investigation, and Alertmanager routes notifications. Reachability probes and checks for expected metrics cover different failure modes.</p>
-      <p class="verification"><strong>Verification</strong> I tested the missing-data rule with a real zero, a missing series, and restored data. I also sent a synthetic alert through the delivery pipeline and confirmed receipt.</p>
-      <a href="#detection">Read the missing-metrics case</a>
+
+    <article class="report" id="ir-02" aria-labelledby="ir-02-title">
+      <header class="report-meta">
+        <p class="report-id">IR-02</p>
+        <p class="report-cat">Linux recovery</p>
+        <p class="status"><span class="pass">Verified</span></p>
+      </header>
+      <div class="report-body">
+        <h3 id="ir-02-title">Repaired ownership on 29,048 system paths.</h3>
+        <dl class="fields">
+          <div><dt>Symptom</dt><dd>File ownership across system paths was wrong, and scheduled jobs had stopped running.</dd></div>
+          <div><dt>Approach</dt><dd>I rebuilt the expected ownership from package archives that matched the installed versions, then reviewed local exceptions by hand.</dd></div>
+          <div><dt>Verification</dt><dd>Checked every planned path, confirmed file contents were preserved, and watched a normal scheduler run complete.</dd></div>
+        </dl>
+        <div class="figures">
+          <p><span class="fig-num">29,048</span><span class="fig-cap">paths re-owned and checked</span></p>
+          <p><span class="fig-num">0</span><span class="fig-cap">reboots needed</span></p>
+        </div>
+      </div>
     </article>
-    <article class="card practice" id="recovery-practice" style="--accent:var(--gold)">
-      <h3>Recovery</h3>
-      <p>Backup jobs package data and configuration, then send copies to a separate device. Each stage reports its own last successful run, so a healthy local backup can coexist with an overdue transfer.</p>
-      <p class="verification"><strong>Verification</strong> I compared archive checksums on both sides and checked selected backup contents. I keep service-specific restore steps in a runbook.</p>
-      <a href="#backups">Read the backup case</a>
+
+    <article class="report" id="ir-03" aria-labelledby="ir-03-title">
+      <header class="report-meta">
+        <p class="report-id">IR-03</p>
+        <p class="report-cat">Backup automation</p>
+        <p class="status"><span class="pass">Verified</span></p>
+      </header>
+      <div class="report-body">
+        <h3 id="ir-03-title">Backups kept missing their destination.</h3>
+        <dl class="fields">
+          <div><dt>Symptom</dt><dd>Backups finished locally, but their copies often missed the window when the destination device was online.</dd></div>
+          <div><dt>Fix</dt><dd>Added a scheduled retry job that sends pending archives and skips copies that already exist.</dd></div>
+          <div><dt>Verification</dt><dd>Compared checksums on both sides, opened selected archives, and added a metric for the last successful transfer. Restore steps for each service live in a runbook.</dd></div>
+        </dl>
+        <ol class="pipeline" aria-label="Backup stages">
+          <li><span>Package</span><small>Data and config archived</small></li>
+          <li><span>Store locally</span><small>Copy on the Pi</small></li>
+          <li><span>Transfer</span><small>Retries until delivered</small></li>
+          <li><span>Verify</span><small>Checksums match</small></li>
+        </ol>
+        <p class="pipeline-note">Each stage reports its own last success, so a healthy local backup can’t hide an overdue transfer.</p>
+      </div>
     </article>
   </div>
 </section>
 
-<section class="section shell" id="services" aria-labelledby="services-title">
-  <div class="sec-head reveal">
-    <h2 id="services-title">What I run</h2>
-    <p>The tools behind private access, Linux operations, and service monitoring.</p>
-  </div>
-  <div class="grid g-4 reveal">
-    <article class="card" style="--accent:var(--cyan)"><h3><span class="dot"></span>Pi-hole</h3><p>Filters DNS requests from devices using the lab’s resolver.</p></article>
-    <article class="card" style="--accent:var(--cyan)"><h3><span class="dot"></span>Unbound</h3><p>Performs recursive resolution with DNSSEC validation.</p></article>
-    <article class="card" style="--accent:var(--cyan)"><h3><span class="dot"></span>Tailscale</h3><p>Provides encrypted connectivity for remote administration.</p></article>
-    <article class="card" style="--accent:var(--cyan)"><h3><span class="dot"></span>Docker Compose</h3><p>Defines how containerized workloads are deployed and maintained.</p></article>
-    <article class="card" style="--accent:var(--violet)"><h3><span class="dot"></span>systemd</h3><p>Runs recurring jobs and tracks their state through timers and units.</p></article>
-    <article class="card" style="--accent:var(--violet)"><h3><span class="dot"></span>Shell scripting</h3><p>Automates maintenance tasks and reports their outcomes.</p></article>
-    <article class="card" style="--accent:var(--violet)"><h3><span class="dot"></span>rsync</h3><p>Copies backups and lets a scheduled job retry pending transfers.</p></article>
-    <article class="card" style="--accent:var(--violet)"><h3><span class="dot"></span>Git</h3><p>Tracks configuration and changes to operational documentation.</p></article>
-    <article class="card" style="--accent:var(--gold)"><h3><span class="dot"></span>Prometheus</h3><p>Collects metrics and evaluates alert rules.</p></article>
-    <article class="card" style="--accent:var(--gold)"><h3><span class="dot"></span>Grafana</h3><p>Visualizes DNS and service health alongside host metrics.</p></article>
-    <article class="card" style="--accent:var(--gold)"><h3><span class="dot"></span>Loki + Alloy</h3><p>Collect and query host and container logs.</p></article>
-    <article class="card" style="--accent:var(--gold)"><h3><span class="dot"></span>Alertmanager</h3><p>Groups alerts and routes them to notifications.</p></article>
-    <article class="card span-2" style="--accent:var(--gold)"><h3><span class="dot"></span>Exporters &amp; probes</h3><p>Measure host health, application metrics, and whether endpoints respond.</p></article>
-    <article class="card span-2" style="--accent:var(--cyan)"><h3><span class="dot"></span>Raspberry Pi 5</h3><p>Single-board computer running Raspberry Pi OS for the lab’s Linux workloads.</p></article>
-  </div>
-</section>
-
-<section class="section shell" id="security" aria-labelledby="security-title">
-  <div class="sec-head reveal">
-    <h2 id="security-title">How I secure it</h2>
-    <p>The controls and checks I use across the lab.</p>
-  </div>
-  <div class="grid g-3 reveal">
-    <article class="card" style="--accent:var(--violet)"><h3><span class="dot"></span>Private access</h3><p>Use encrypted access for remote administration and keep application access private.</p></article>
-    <article class="card" style="--accent:var(--violet)"><h3><span class="dot"></span>Defense in depth</h3><p>Combine remote access controls, a host firewall, and container network segmentation.</p></article>
-    <article class="card" style="--accent:var(--violet)"><h3><span class="dot"></span>Least privilege</h3><p>Restrict process privileges and container permissions where supported.</p></article>
-    <article class="card span-2" style="--accent:var(--magenta)"><h3><span class="dot"></span>Secrets management</h3><p>Keep credentials separate from version-controlled configuration and scope them to the jobs that use them.</p></article>
-    <article class="card" style="--accent:var(--magenta)"><h3><span class="dot"></span>Reviewed updates</h3><p>Review upgrades for stateful workloads with attention to data compatibility and recovery.</p></article>
-    <article class="card span-2" style="--accent:var(--gold)"><h3><span class="dot"></span>Backup verification</h3><p>Verify copies with checksums and record restore procedures for future recovery.</p></article>
-    <article class="card" style="--accent:var(--gold)"><h3><span class="dot"></span>Health checks</h3><p>Combine reachability checks with application metrics to catch silent failures.</p></article>
-  </div>
-</section>
-
-<section class="section shell" id="incidents" aria-labelledby="incident-title">
-  <div class="sec-head reveal">
-    <h2 id="incident-title">Case studies</h2>
-    <p>Three problems I diagnosed, fixed, and verified.</p>
-  </div>
-  <div class="grid g-3 reveal">
-    <article class="card incident" id="detection" style="--accent:var(--pink)">
-      <p class="top"><span class="sev">Monitoring &amp; detection</span></p>
-      <h3>A healthy scrape hid missing data</h3>
-      <p>Prometheus could reach an exporter, but application metrics were missing. I traced the problem through exporter logs and restored collection.</p>
-      <p class="fix"><strong>Outcome.</strong> Added and tested an alert that detects missing metrics while the exporter is still reachable.</p>
-      <details class="case-detail">
-        <summary>What I checked</summary>
-        <p>I compared scrape health with the application series the dashboard needed. After the fix, I verified that the series returned and that the alert cleared when data resumed.</p>
-      </details>
-    </article>
-    <article class="card incident" id="recovery" style="--accent:var(--magenta)">
-      <p class="top"><span class="sev">Linux recovery</span></p>
-      <h3>Repaired ownership on 29,048 system paths</h3>
-      <p>I reconstructed expected file ownership using verified package archives and reviewed local exceptions.</p>
-      <p class="fix"><strong>Outcome.</strong> Verified every planned path and confirmed scheduled jobs ran again without rebooting the host.</p>
-      <details class="case-detail">
-        <summary>What I checked</summary>
-        <p>I used archives matching the installed package versions as the ownership baseline. I checked that file contents were preserved and watched a normal scheduler run complete after the repair.</p>
-      </details>
-    </article>
-    <article class="card incident" id="backups" style="--accent:var(--gold)">
-      <p class="top"><span class="sev">Backup automation</span></p>
-      <h3>Made backup transfers retry automatically</h3>
-      <p>Backups completed locally, but their copies often missed the destination’s availability window. I added a retry job for pending transfers.</p>
-      <p class="fix"><strong>Outcome.</strong> Verified transferred archives by checksum and added a metric for the last successful transfer.</p>
-      <details class="case-detail">
-        <summary>What I checked</summary>
-        <p>The retry job sends pending archives and skips existing copies. I verified newly copied archives against their source checksums and checked that the transfer metric recorded a successful run.</p>
-      </details>
-    </article>
-  </div>
-</section>
-
-<section class="section shell" id="stack" aria-labelledby="stack-title">
-  <div class="sec-head reveal">
-    <h2 id="stack-title">Stack summary</h2>
-  </div>
-  <div class="tablewrap reveal">
-    <table aria-labelledby="stack-title">
-      <thead><tr><th scope="col">Area</th><th scope="col">Tools</th></tr></thead>
-      <tbody>
-        <tr><th scope="row">Platform</th><td>Raspberry Pi OS, Docker Compose, systemd</td></tr>
-        <tr><th scope="row">Networking</th><td>Tailscale, Pi-hole, Unbound</td></tr>
-        <tr><th scope="row">Observability</th><td>Prometheus, Grafana, Alertmanager, Loki, Alloy</td></tr>
-        <tr><th scope="row">Automation</th><td>Shell scripting, rsync, Git</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
 </main>
 
-<footer>
-  <div class="shell">
-    <span>Dimitris Pournatzis <span class="footer-divider">/</span> Descent</span>
-    <div class="profiles">
-      <a href="https://www.linkedin.com/in/dimpournatzis">LinkedIn</a>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <p><strong>sh_lab</strong> · Dimitris Pournatzis · Rev 2026.11</p>
+    <p class="footer-note">No trackers and no third-party requests. Fonts are self-hosted.</p>
+    <nav class="footer-links" aria-label="Profiles">
       <a href="https://github.com/DimPourn">GitHub</a>
-    </div>
+      <a href="https://www.linkedin.com/in/dimpournatzis">LinkedIn</a>
+      <a href="https://github.com/DimPourn/sh_lab">Source</a>
+    </nav>
   </div>
 </footer>
 
-<dialog class="screen-dialog" id="screen-dialog" aria-label="Lab viewer">
-  <div class="screen-focus" aria-hidden="true"></div>
-  <div class="screen-dialog-layout">
-    <div class="screen-view" id="focused-screen">
-      <form class="screen-return" method="dialog">
-        <button type="submit" autofocus>Back to the room</button>
-      </form>
-    </div>
-  </div>
-</dialog>
-
-<script type="importmap">
-{ "imports": { "three": "./vendor/three.module.js" } }
-</script>
-<script src="./vendor/gsap.min.js" defer></script>
-<script src="./vendor/ScrollTrigger.min.js" defer></script>
-<script type="module" src="./app.js?v=soc2"></script>
-
+<script src="./app.js?v=sheet2" defer></script>
 </body>
 </html>

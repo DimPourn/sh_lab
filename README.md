@@ -12,6 +12,6 @@ A cybersecurity homelab by Dimitris Pournatzis. I use a Raspberry Pi 5 to practi
 
 ## Website
 
-GitHub Pages serves the static portfolio from `docs/`. The Descent tour uses local fonts and a bundled Three.js scene. It requires no build step.
+GitHub Pages serves the static portfolio from `docs/`. It is plain HTML, CSS, and a small script, with self-hosted fonts and no third-party requests. It requires no build step.
 
 Preview it locally with `python3 -m http.server --bind localhost --directory docs 8080`.
