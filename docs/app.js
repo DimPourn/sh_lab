@@ -235,6 +235,7 @@
     // Smooth scrolling, driven by GSAP's ticker so ScrollTrigger stays in sync.
     if ("Lenis" in window) {
       const lenis = new Lenis({ lerp: 0.085, smoothWheel: true });
+      window.__shlabLenis = lenis; // case.js drives file transitions with it
       lenis.on("scroll", ScrollTrigger.update);
       gsap.ticker.add((time) => lenis.raf(time * 1000));
       gsap.ticker.lagSmoothing(0);

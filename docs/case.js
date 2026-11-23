@@ -1,37 +1,42 @@
-// Case-file hero: lamp on, walk to the desk, a pile of folders lands, SH-LAB/01 opens.
-// case.css renders the opened folder on its own; this file only adds motion on top of it.
+// Case-file site: the desk is the hero and the menu. Every section below is a file.
+// case.css renders everything finished on its own; this file adds motion, sound and
+// the file transitions on top of it.
 (() => {
   const root = document.documentElement;
   const sec = document.querySelector(".case");
   if (!sec) return;
-  const $ = (s) => sec.querySelector(s);
-  const $$ = (s) => Array.from(sec.querySelectorAll(s));
+  const $ = (s, el = sec) => el.querySelector(s);
+  const $$ = (s, el = sec) => Array.from(el.querySelectorAll(s));
 
   const stage = $(".case-stage"), fx = $(".case-fx"), cam = $(".case-cam"), walk = $(".case-walk");
-  const main = $(".case-main"), cover = $(".case-cover");
-  const piles = [$(".case-pile-a"), $(".case-pile-b"), $(".case-pile-c")];
+  const desk = $(".case-desk"), key = $(".case-key"), main = $(".case-main"), cover = $(".case-cover");
+  const files = $$(".case-file");
   const frontShade = $(".case-front .case-shade"), innerShade = $(".case-inner .case-shade");
   const bars = $$(".case-bar:not(.is-kept)"), stamp = $(".case-verified");
   const slip = $(".case-slip"), tofrom = $(".case-tofrom"), h1 = $("h1"), lede = $(".case-lede"), cta = $(".case-cta");
+  const note = $(".case-note"), strip = $(".case-files");
   const dark = $(".case-dark"), dim = $(".case-dim"), light = $(".case-light"), cue = $(".case-cue"), skip = $(".case-skip");
+  const veil = document.querySelector(".file-veil"), veilTab = document.querySelector(".file-veil-tab");
   const phone = window.matchMedia("(max-width: 759px)");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
   const KEY = "shlab-case-intro";
 
   // The stage is drawn at 1280 × 800 (390 wide on phones) and scaled to the viewport.
-  function fit() {
-    const w = sec.clientWidth, h = sec.clientHeight;
-    const s = phone.matches ? w / 390 : Math.min(w / 1280, h / 800);
-    stage.style.setProperty("--s", s.toFixed(4));
-  }
+  const scale = () => (phone.matches ? sec.clientWidth / 390 : Math.min(sec.clientWidth / 1280, sec.clientHeight / 800));
+  const fit = () => stage.style.setProperty("--s", scale().toFixed(4));
   fit();
   window.addEventListener("resize", fit);
+
+  const sound = createSound();
+  setupSoundToggle();
 
   const motion = root.classList.contains("motion") && "gsap" in window && "ScrollTrigger" in window;
   if (!motion) return;
 
-  let tl = null, split = null, dustOn = false;
+  let tl = null, split = null, dustOn = false, busy = false;
   const seen = () => { try { return sessionStorage.getItem(KEY) === "1"; } catch { return false; } };
   const remember = () => { try { sessionStorage.setItem(KEY, "1"); } catch { /* private mode: replay next time */ } };
+  const cssNum = (el, name) => parseFloat(getComputedStyle(el).getPropertyValue(name)) || 0;
 
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
     try { start(); } catch (err) { fail(err); }
@@ -43,7 +48,7 @@
     stage.style.visibility = "visible";
     cue.style.visibility = "visible";
 
-    // Pin the desk while the page sheet slides over it (same hand-off as the old hero).
+    // Pin the desk while the page sheet slides over it.
     ScrollTrigger.create({
       trigger: sec,
       start: () => (sec.offsetHeight > window.innerHeight ? "bottom bottom" : "top top"),
@@ -58,6 +63,10 @@
     if (full) remember();
     dust($(".case-dust"));
     pointerLight();
+    wireFiles();
+    sectionFiles();
+    ScrollTrigger.create({ trigger: ".sheet", start: "top 30%", end: "bottom top", onToggle: (st) => root.classList.toggle("show-desk", st.isActive) });
+    document.querySelector(".to-desk")?.addEventListener("click", () => sound.play("paper"));
     ScrollTrigger.refresh();
   }
 
@@ -65,13 +74,15 @@
     const isPhone = phone.matches;
     gsap.set(dark, { autoAlpha: 1 });
     gsap.set(cam, { x: 0, scale: 0.62 });
-    gsap.set([...piles, main], { autoAlpha: 0 });
+    gsap.set(desk, { filter: "blur(7px)" });
+    gsap.set([...files, main], { autoAlpha: 0 });
     gsap.set(cover, { rotationY: 0 });
     gsap.set(frontShade, { opacity: 0 });
     gsap.set(innerShade, { opacity: 0.5 });
     gsap.set(bars, { scaleX: 1 });
     gsap.set(stamp, { autoAlpha: 0, scale: 1.8, rotation: -9 });
-    gsap.set([slip, tofrom, lede, cta, cue], { autoAlpha: 0, y: 10 });
+    gsap.set([slip, tofrom, lede, cta, cue, note], { autoAlpha: 0, y: 10 });
+    if (strip) gsap.set(strip, { autoAlpha: 0, y: 16 });
     if (window.SplitText) {
       split = new SplitText(h1.querySelectorAll("span"), { type: "chars" });
       gsap.set(split.chars, { autoAlpha: 0 });
@@ -83,85 +94,186 @@
 
     const t = gsap.timeline({ defaults: { ease: "power3.out" }, onComplete: settle });
 
-    // The desk lamp clicks on with a short flicker.
-    t.to(dark, { autoAlpha: 0.3, duration: 0.04, ease: "none" }, 0.35)
+    // The lamp clicks on with a short flicker.
+    t.call(() => sound.play("click"), null, 0.35)
+      .to(dark, { autoAlpha: 0.3, duration: 0.04, ease: "none" }, 0.35)
       .to(dark, { autoAlpha: 0.85, duration: 0.04, ease: "none" }, 0.42)
       .to(dark, { autoAlpha: 0.12, duration: 0.05, ease: "none" }, 0.5)
       .to(dark, { autoAlpha: 0, duration: 0.35, ease: "power1.out" }, 0.58)
       .call(() => { dustOn = true; }, null, 0.6);
 
-    // Walk up to the desk: the view closes in with a footstep bob that settles on arrival.
+    // Walk up to the desk. The desk stays soft; the files land sharp, then the desk focuses.
     t.to(cam, { scale: 0.88, duration: 1.6, ease: "power2.inOut" }, 0.4)
       .to(walk, { y: 7, duration: 0.27, ease: "sine.inOut", yoyo: true, repeat: 5 }, 0.45)
-      .to(walk, { y: 0, duration: 0.3, ease: "sine.out" }, 2.07);
+      .to(walk, { y: 0, duration: 0.3, ease: "sine.out" }, 2.07)
+      .to(desk, { filter: "blur(0px)", duration: 1.6, ease: "power2.out" }, 2.4);
 
-    // A pile of folders is tossed onto the desk, SH-LAB/01 last and on top.
-    const from = [[600, 760, 34], [680, 820, 42], [580, 850, 30], [640, 790, 38]];
-    const land = [[72, 42, 7], [-34, 18, -6], [42, -12, 3.2], [-16, 14, -3.6]];
-    [...piles, main].forEach((el, i) => {
-      const at = 1.5 + i * 0.14;
+    // The pile is tossed down, SH-LAB/01 last and on top.
+    const land = [[70, 40, 7], [-30, 18, -6], [40, -12, 3], [12, 30, -2], [-48, -6, 5], [58, 10, -4], [-16, -20, 2.5], [28, 26, -7], [-16, 14, -3.6]];
+    [...files, main].forEach((el, i, all) => {
+      const last = i === all.length - 1;
+      const at = 1.45 + i * 0.075 + (last ? 0.12 : 0);
       t.set(el, { autoAlpha: 1 }, at).fromTo(
         el,
-        { x: from[i][0], y: from[i][1], rotation: from[i][2], scale: 1.08, "--lift": 1 },
+        { x: 560 + (i % 3) * 50, y: 760 + (i % 4) * 30, rotation: 26 + (i % 5) * 4, scale: 1.08, "--lift": 1 },
         { x: land[i][0], y: land[i][1], rotation: land[i][2], scale: 1, "--lift": 0, duration: 0.62, ease: "back.out(1.15)" },
         at,
       );
+      if (last || i % 3 === 0) t.call(() => sound.play("thud", last ? 1 : 0.5), null, at + 0.34);
     });
-    t.to(walk, { keyframes: { x: [0, -5, 4, -3, 1.5, 0], y: [0, 3, -2, 1, 0, 0] }, duration: 0.32, ease: "none" }, 2.3);
+    t.to(walk, { keyframes: { x: [0, -5, 4, -3, 1.5, 0], y: [0, 3, -2, 1, 0, 0] }, duration: 0.32, ease: "none" }, 2.5);
 
-    // Pull the top file square and lean in.
-    t.to(main, { x: 0, y: 0, rotation: 0, duration: 0.55, ease: "power2.inOut" }, 2.7)
+    // Square the pile into an index, pull the top file straight, lean in.
+    t.to(files, {
+      x: (i, el) => cssNum(el, "--x"), y: 0, rotation: (i, el) => cssNum(el, "--r"),
+      duration: 0.5, ease: "power2.inOut", stagger: { each: 0.03, from: "end" },
+    }, 2.72)
+      .to(main, { x: 0, y: 0, rotation: 0, duration: 0.55, ease: "power2.inOut" }, 2.7)
       .to(cam, { scale: 1, duration: 1.0, ease: "power2.inOut" }, 2.7);
 
     // Open it: the cover swings over the hinge, darkening as it turns from the lamp.
-    t.to(cover, { rotationY: -180, duration: 0.95, ease: "power2.inOut" }, 3.25)
+    t.call(() => sound.play("paper"), null, 3.25)
+      .to(cover, { rotationY: -180, duration: 0.95, ease: "power2.inOut" }, 3.25)
       .to(frontShade, { opacity: 0.45, duration: 0.475, ease: "power1.in" }, 3.25)
       .to(innerShade, { opacity: 0, duration: 0.475, ease: "power1.out" }, 3.725);
     if (isPhone) t.to(cam, { x: 340, duration: 0.95, ease: "power2.inOut" }, 3.25);
 
-    // The routing slip types itself; the dossier's redactions lift; the stamp lands.
+    // The routing slip types itself, the redactions lift, the stamp lands.
     t.to([slip, tofrom], { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.06 }, 3.9);
     if (split) t.to(split.chars, { autoAlpha: 1, duration: 0.01, stagger: 0.036, ease: "none" }, 4.0);
     else t.to(h1, { autoAlpha: 1, duration: 0.4 }, 4.0);
-    t.to(bars, { scaleX: 0, duration: 0.45, stagger: 0.13 }, 4.1)
+    t.to(bars, { scaleX: 0, duration: 0.45, stagger: { each: 0.13, ease: "power1.in" } }, 4.1)
       .to([lede, cta], { autoAlpha: 1, y: 0, duration: 0.55, stagger: 0.12 }, 4.85)
+      .call(() => sound.play("stamp"), null, 5.12)
       .to(stamp, { autoAlpha: 0.88, scale: 1, duration: 0.16, ease: "power4.in" }, 5.0)
       .to(walk, { keyframes: { x: [0, -2.5, 2, -1, 0] }, duration: 0.22, ease: "none" }, 5.16)
+      .to(note, { autoAlpha: 1, y: 0, duration: 0.45, ease: "back.out(1.6)" }, 5.3)
       .to(skip, { autoAlpha: 0, duration: 0.3 }, 5.2)
-      .to(cue, { autoAlpha: 1, y: 0, duration: 0.6 }, 5.3);
+      .to(cue, { autoAlpha: 1, y: 0, duration: 0.6 }, 5.4);
+    if (strip) t.to(strip, { autoAlpha: 1, y: 0, duration: 0.5 }, 5.3);
     return t;
   }
 
-  // Returning visitors and deep links skip the scene and get the open file at once.
+  // Returning visitors and deep links get the open file at once.
   function quick() {
     dustOn = true;
-    return gsap.timeline({ onComplete: settle })
-      .from(fx, { autoAlpha: 0, duration: 0.6, ease: "power2.out" })
-      .from(cue, { autoAlpha: 0, duration: 0.4 }, 0.3);
+    const t = gsap.timeline({ onComplete: settle }).from(fx, { autoAlpha: 0, duration: 0.6, ease: "power2.out" }).from(cue, { autoAlpha: 0, duration: 0.4 }, 0.3);
+    if (strip) t.fromTo(strip, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 0.3);
+    return t;
   }
 
   // Hand everything back to case.css, then wire the scroll hand-off.
   function settle() {
     skip.hidden = true;
     if (split) { split.revert(); split = null; }
-    gsap.set([fx, cam, walk, main, ...piles, ...bars, stamp, slip, tofrom, lede, cta, h1, dark, frontShade, innerShade, skip], { clearProps: "all" });
+    gsap.set([fx, cam, walk, desk, main, ...files, ...bars, stamp, slip, tofrom, lede, cta, h1, note, dark, frontShade, innerShade, skip], { clearProps: "all" });
     gsap.set(cue, { clearProps: "opacity,transform" });
+    if (strip) gsap.set(strip, { clearProps: "transform" });
     gsap.set(cover, { rotationY: -180 });
+    sec.classList.add("is-ready");
     scrollFx();
   }
 
   function scrollFx() {
-    const scrub = { trigger: sec, start: "top top", end: () => `+=${window.innerHeight}`, scrub: true, invalidateOnRefresh: true };
-    const t = gsap.timeline({ scrollTrigger: scrub })
+    const t = gsap.timeline({ scrollTrigger: { trigger: sec, start: "top top", end: () => `+=${window.innerHeight}`, scrub: true, invalidateOnRefresh: true } })
       .to(fx, { scale: 0.94, y: -24, ease: "none" }, 0)
       .to(dim, { opacity: 0.55, ease: "none" }, 0)
       .to(cue, { autoAlpha: 0, duration: 0.15, ease: "none" }, 0);
-    // On wide screens the file starts to close as the sheet arrives.
     if (!phone.matches) {
       t.fromTo(cover, { rotationY: -180 }, { rotationY: -118, ease: "power1.in" }, 0)
         .fromTo(innerShade, { opacity: 0 }, { opacity: 0.35, ease: "none" }, 0);
     }
     phone.addEventListener("change", () => { fit(); ScrollTrigger.refresh(); });
+  }
+
+  // ── Files: the pile, the phone strip and the hero's own link open a file ──
+  function wireFiles() {
+    const links = [...files, ...$$(".case-files a"), ...$$(".case-cta a")];
+    for (const link of links) {
+      const id = link.getAttribute("href").slice(1);
+      const target = document.getElementById(id);
+      const folder = files.find((f) => f.getAttribute("href") === `#${id}`);
+      if (!target || !folder) continue; // not a file (e.g. the incident list): app.js scrolls to it
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openFile(folder, target, e.detail === 0);
+      });
+    }
+  }
+
+  const lenis = () => window.__shlabLenis;
+  const scrollY0 = (el) => el.getBoundingClientRect().top + window.scrollY;
+  function jump(y) { const l = lenis(); if (l) l.scrollTo(y, { immediate: true, force: true }); else window.scrollTo(0, y); }
+  function glide(y, done) {
+    const l = lenis();
+    if (l) l.scrollTo(y, { duration: 1.4, easing: (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2), force: true, onComplete: done });
+    else { window.scrollTo({ top: y, behavior: "smooth" }); setTimeout(done, 900); }
+  }
+  function land(target) {
+    target.setAttribute("tabindex", "-1");
+    target.focus({ preventScroll: true });
+    history.replaceState(null, "", `#${target.id}`);
+  }
+
+  function openFile(folder, target, fromKeyboard) {
+    if (busy) return;
+    const y = scrollY0(target);
+    // Keyboard and reduced motion: go straight there. Animating keyboard actions only slows them down.
+    if (fromKeyboard || reduced.matches) { jump(y); land(target); return; }
+    busy = true;
+    sound.play("paper");
+    lenis()?.stop();
+    veilTab.textContent = folder.querySelector(".case-label b").textContent.replace(/^FILE /, "") + " · " + folder.querySelector(".case-label span").textContent;
+
+    const t = gsap.timeline({ onComplete: () => { busy = false; } });
+    const atDesk = window.scrollY < window.innerHeight * 0.5 && !phone.matches;
+    if (atDesk) {
+      // Lead: the file slides out of the pile and flies at the viewer until it fills the screen.
+      const s = scale(), S = Math.max(window.innerWidth / s / 480, window.innerHeight / s / 640) * 1.12;
+      const rest = [desk, main, key];
+      t.set(folder, { zIndex: 30 })
+        .to(folder, { x: "+=72", duration: 0.18, ease: "power2.out" })
+        .to(folder, { x: -240, y: -16, rotation: 0, scale: S, "--lift": 1, duration: 0.56, ease: "power3.inOut" }, 0.12)
+        .to(rest, { filter: "blur(5px) brightness(.7)", duration: 0.56, ease: "power2.inOut" }, 0.12);
+    }
+    // Support: paper covers the screen, the page jumps behind it, then the paper lifts away
+    // while the page glides onto the file, whose own cover opens as it arrives.
+    const coverAt = atDesk ? 0.56 : 0;
+    t.set(veil, { yPercent: 0 }, coverAt)
+      .fromTo(veil, { autoAlpha: 0 }, { autoAlpha: 1, duration: atDesk ? 0.16 : 0.22, ease: "power1.out" }, coverAt)
+      .call(() => {
+        const hasCover = !!target.querySelector(":scope > .file-cover");
+        // Start where the file's cover is still shut, so it opens in view once the paper lifts.
+        jump(hasCover ? y - window.innerHeight * 0.85 : y);
+        if (atDesk) gsap.set([folder, desk, main, key], { clearProps: "all" });
+        lenis()?.start();
+        gsap.delayedCall(0.22, () => glide(y, () => land(target)));
+      })
+      .to(veil, { yPercent: -100, duration: 0.55, ease: "power3.inOut" }, "+=0.04")
+      .set(veil, { autoAlpha: 0, yPercent: 0 });
+  }
+
+  // ── Sections as files: covers that open on arrival, stamps, the stapled printout ──
+  function sectionFiles() {
+    for (const c of document.querySelectorAll(".is-file > .file-cover")) {
+      gsap.timeline({ scrollTrigger: { trigger: c.parentElement, start: "top 85%", end: "top 22%", scrub: 0.5 } })
+        .fromTo(c, { rotationX: 0, transformPerspective: 1800, transformOrigin: "50% 0%" }, { rotationX: -94, ease: "power1.in", duration: 1 }, 0)
+        .to(c, { autoAlpha: 0, duration: 0.22, ease: "none" }, 0.78);
+    }
+    for (const s of document.querySelectorAll(".file-stamp")) {
+      gsap.fromTo(s, { autoAlpha: 0, scale: 1.8, rotation: -7 }, {
+        autoAlpha: 1, scale: 1, rotation: -7, duration: 0.18, ease: "power4.in",
+        scrollTrigger: { trigger: s.closest(".report"), start: "top 70%", once: true },
+        onComplete: () => sound.play("stamp", 0.6),
+      });
+    }
+    const printout = document.querySelector(".printout");
+    if (printout) {
+      gsap.timeline({ scrollTrigger: { trigger: printout, start: "top 85%", once: true } })
+        .from(printout, { y: -36, rotation: -7, autoAlpha: 0, duration: 0.6, ease: "power3.out" })
+        .fromTo(printout.querySelector(".staple"), { scaleX: 1.5, autoAlpha: 0 }, { scaleX: 1, autoAlpha: 1, duration: 0.12, ease: "power4.in", onComplete: () => sound.play("click") }, 0.45);
+    }
   }
 
   // The lamp follows the pointer a little, like a hand nudging it.
@@ -214,15 +326,71 @@
     });
   }
 
+  // ── Sound: synthesized with Web Audio (no files), off until the visitor turns it on ──
+  function createSound() {
+    let on = false, ctx = null;
+    try { on = localStorage.getItem("shlab-sound") === "1"; } catch { /* storage blocked */ }
+    const ready = () => {
+      if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ctx = new AC(); }
+      if (ctx.state === "suspended") ctx.resume();
+      return ctx;
+    };
+    const noise = (c, secs) => {
+      const buf = c.createBuffer(1, Math.ceil(c.sampleRate * secs), c.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const src = c.createBufferSource(); src.buffer = buf; return src;
+    };
+    const burst = (c, t, { secs, type, freq, q = 0.8, peak, attack = 0.002 }) => {
+      const src = noise(c, secs + 0.05), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = type; f.frequency.value = freq; f.Q.value = q;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + secs);
+      src.connect(f).connect(g).connect(c.destination); src.start(t); src.stop(t + secs + 0.05);
+    };
+    const tone = (c, t, { freq, secs, peak, type = "sine", drop = 0.6 }) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * drop, t + secs);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + secs);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + secs + 0.02);
+    };
+    const kit = {
+      click: (c, t, v) => { tone(c, t, { freq: 2100, secs: 0.02, peak: 0.05 * v, type: "square", drop: 0.8 }); burst(c, t, { secs: 0.03, type: "highpass", freq: 3200, peak: 0.08 * v }); },
+      thud: (c, t, v) => { burst(c, t, { secs: 0.22, type: "lowpass", freq: 420, peak: 0.45 * v }); tone(c, t, { freq: 95, secs: 0.16, peak: 0.25 * v }); },
+      paper: (c, t, v) => { burst(c, t, { secs: 0.2, type: "bandpass", freq: 2600, q: 0.6, peak: 0.07 * v, attack: 0.03 }); },
+      stamp: (c, t, v) => { burst(c, t, { secs: 0.13, type: "lowpass", freq: 950, peak: 0.55 * v }); tone(c, t, { freq: 70, secs: 0.15, peak: 0.4 * v }); },
+    };
+    return {
+      get on() { return on; },
+      set(value) { on = value; try { localStorage.setItem("shlab-sound", value ? "1" : "0"); } catch { /* storage blocked */ } },
+      play(name, volume = 1) {
+        if (!on || document.hidden) return;
+        const c = ready(); if (!c || c.state !== "running") return;
+        kit[name](c, c.currentTime + 0.005, volume);
+      },
+      unlock() { if (on) ready(); },
+    };
+  }
+
+  function setupSoundToggle() {
+    const btn = document.querySelector(".sound-toggle");
+    if (!btn) return;
+    const show = () => { btn.setAttribute("aria-pressed", String(sound.on)); btn.title = sound.on ? "Sound on" : "Sound off"; };
+    show();
+    btn.addEventListener("click", () => { sound.set(!sound.on); show(); sound.unlock(); setTimeout(() => sound.play("click"), 30); });
+    // Browsers only start audio after a gesture: the first tap anywhere unlocks it if it was left on.
+    window.addEventListener("pointerdown", () => sound.unlock(), { once: true });
+  }
+
   // If anything throws, fall back to the static opened file.
   function fail(err) {
     console.error(err);
     if (tl) tl.kill();
     if (split) split.revert();
-    gsap.set([fx, cam, walk, main, cover, ...piles, ...bars, stamp, slip, tofrom, lede, cta, h1, dark, frontShade, innerShade, skip], { clearProps: "all" });
+    gsap.set([fx, cam, walk, desk, main, cover, ...files, ...bars, stamp, slip, tofrom, lede, cta, h1, note, dark, frontShade, innerShade, skip], { clearProps: "all" });
+    if (strip) gsap.set(strip, { clearProps: "all" });
     skip.hidden = true;
     stage.style.visibility = "visible";
     cue.style.visibility = "visible";
+    if (strip) strip.style.visibility = "visible";
     fit();
   }
 })();

@@ -34,6 +34,11 @@
 
 <span class="progress" aria-hidden="true"></span>
 
+<a class="to-desk" href="#top" aria-label="Back to the desk"><span aria-hidden="true">←</span> Desk</a>
+<button class="sound-toggle" type="button" aria-pressed="false" aria-label="Sound effects">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="sound-on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="sound-off" d="M16 9.5l5 5m0-5l-5 5"/></svg>
+</button>
+<div class="file-veil" aria-hidden="true"><p class="file-veil-tab"></p></div>
 <main id="main">
 
 <section class="case" id="top" aria-labelledby="hero-title">
@@ -43,18 +48,52 @@
       <div class="case-cam">
         <div class="case-walk">
           <div class="case-desk" aria-hidden="true"><i class="case-mat"></i><i class="case-pen"></i><i class="case-ring"></i></div>
-          <div class="case-folder case-pile case-pile-a" aria-hidden="true">
-            <i class="case-panel"></i><span class="case-tab">NETWORK</span>
-            <div class="case-face"><p class="case-label"><b>FILE SH-LAB/02</b><br>Six layers of defense</p></div>
-          </div>
-          <div class="case-folder case-pile case-pile-b" aria-hidden="true">
-            <i class="case-panel"></i><span class="case-tab">INC-01</span>
-            <div class="case-face"><p class="case-label"><b>FILE SH-LAB/INC-01</b><br>Observability</p><span class="case-stamp case-stamp-big">Classified</span></div>
-          </div>
-          <div class="case-folder case-pile case-pile-c" aria-hidden="true">
-            <i class="case-panel"></i><span class="case-tab">INC-02</span>
-            <div class="case-face"><p class="case-label"><b>FILE SH-LAB/INC-02</b><br>Linux recovery</p></div>
-          </div>
+          <span class="case-key" tabindex="0" role="img" aria-label="A hardware security key">
+            <i class="case-key-ring"></i><i class="case-key-touch"></i><i class="case-key-plug"></i>
+            <span class="case-tip" aria-hidden="true">Something you have.</span>
+          </span>
+          <nav class="case-pile" aria-label="Files">
+            <a class="case-folder case-file" href="#board" aria-label="Open file Exhibit A: Top view, illustrative">
+              <i class="case-panel"></i>
+              <span class="case-face"><span class="case-label"><b>FILE EXHIBIT A</b><br>The board<br><span>Top view, illustrative</span></span><span class="case-stamp case-stamp-big">Evidence</span></span>
+              <span class="case-side"><b>EXHIBIT</b>A</span>
+            </a>
+            <a class="case-folder case-file" href="#stackup" aria-label="Open file SH-LAB/02: Six layers of defense">
+              <i class="case-panel"></i>
+              <span class="case-face"><span class="case-label"><b>FILE SH-LAB/02</b><br>Network<br><span>Six layers of defense</span></span><span class="case-stamp case-stamp-big">Classified</span></span>
+              <span class="case-side"><b>02</b>NETWORK</span>
+            </a>
+            <a class="case-folder case-file" href="#signals" aria-label="Open file SH-LAB/03: Monitoring and alerting">
+              <i class="case-panel"></i>
+              <span class="case-face"><span class="case-label"><b>FILE SH-LAB/03</b><br>Signals<br><span>Monitoring and alerting</span></span><span class="case-stamp case-stamp-big">Classified</span></span>
+              <span class="case-side"><b>03</b>SIGNALS</span>
+            </a>
+            <a class="case-folder case-file" href="#hardening" aria-label="Open file SH-LAB/04: Container baseline">
+              <i class="case-panel"></i>
+              <span class="case-face"><span class="case-label"><b>FILE SH-LAB/04</b><br>Hardening<br><span>Container baseline</span></span><span class="case-stamp case-stamp-big">Classified</span></span>
+              <span class="case-side"><b>04</b>HARDENING</span>
+            </a>
+            <a class="case-folder case-file" href="#parts" aria-label="Open file SH-LAB/05: Bill of materials">
+              <i class="case-panel"></i>
+              <span class="case-face"><span class="case-label"><b>FILE SH-LAB/05</b><br>Parts<br><span>Bill of materials</span></span><span class="case-stamp case-stamp-big">Inventory</span></span>
+              <span class="case-side"><b>05</b>PARTS</span>
+            </a>
+            <a class="case-folder case-file" href="#ir-01" aria-label="Open file IR-01: Monitoring and detection">
+              <i class="case-panel"></i>
+              <span class="case-face"><span class="case-label"><b>FILE IR-01</b><br>Incident IR-01<br><span>Monitoring and detection</span></span><span class="case-stamp case-stamp-big">Classified</span></span>
+              <span class="case-side"><b>IR</b>01</span>
+            </a>
+            <a class="case-folder case-file" href="#ir-02" aria-label="Open file IR-02: Linux recovery">
+              <i class="case-panel"></i>
+              <span class="case-face"><span class="case-label"><b>FILE IR-02</b><br>Incident IR-02<br><span>Linux recovery</span></span><span class="case-stamp case-stamp-big">Classified</span></span>
+              <span class="case-side"><b>IR</b>02</span>
+            </a>
+            <a class="case-folder case-file" href="#ir-03" aria-label="Open file IR-03: Backup automation">
+              <i class="case-panel"></i>
+              <span class="case-face"><span class="case-label"><b>FILE IR-03</b><br>Incident IR-03<br><span>Backup automation</span></span><span class="case-stamp case-stamp-big">Classified</span></span>
+              <span class="case-side"><b>IR</b>03</span>
+            </a>
+          </nav>
           <div class="case-folder case-main">
             <i class="case-panel" aria-hidden="true"></i><span class="case-tab" aria-hidden="true">SH-LAB/01</span>
             <article class="case-sheet" aria-label="Security assessment">
@@ -68,8 +107,8 @@
                 <dt>Watch</dt><dd><span class="case-v">Prometheus → Alertmanager → phone<i class="case-bar"></i></span></dd>
                 <dt>Recovery</dt><dd><span class="case-v">Checksummed backups, restore steps<i class="case-bar"></i></span></dd>
                 <dt>Findings</dt><dd><span class="case-v">3 incidents, each closed with proof<i class="case-bar"></i></span></dd>
-                <dt>Public IP</dt><dd><span class="case-v"><span aria-hidden="true">203.0.113.0</span><span class="case-sr">redacted</span><i class="case-bar is-kept"></i></span></dd>
-                <dt>LAN range</dt><dd><span class="case-v"><span aria-hidden="true">192.0.2.0/24</span><span class="case-sr">redacted</span><i class="case-bar is-kept"></i></span></dd>
+                <dt>Public IP</dt><dd><span class="case-v is-redacted" tabindex="0"><span aria-hidden="true">203.0.113.0</span><span class="case-sr">redacted</span><i class="case-bar is-kept"></i><span class="case-tip" aria-hidden="true">Nice try.</span></span></dd>
+                <dt>LAN range</dt><dd><span class="case-v is-redacted" tabindex="0"><span aria-hidden="true">192.0.2.0/24</span><span class="case-sr">redacted</span><i class="case-bar is-kept"></i><span class="case-tip" aria-hidden="true">Nice try.</span></span></dd>
               </dl>
               <div class="case-sheet-foot"><span>Prepared by D. Pournatzis</span><span>Page 1 / 6</span></div>
               <span class="case-stamp case-verified" aria-hidden="true">Verified</span>
@@ -92,6 +131,7 @@
                   <a class="case-btn case-btn-solid" href="#board">Open the file</a>
                   <a class="case-btn case-btn-line" href="#incidents">Read the incident reports</a>
                 </div>
+                <span class="case-note" aria-hidden="true">Tailnet Lock:<br>1 signer</span>
                 <i class="case-shade" aria-hidden="true"></i>
               </div>
             </div>
@@ -104,12 +144,24 @@
   <div class="case-light" aria-hidden="true"></div>
   <div class="case-vignette" aria-hidden="true"></div>
   <div class="case-dark" aria-hidden="true"></div>
+  <nav class="case-files" aria-label="Files">
+    <a href="#board"><b>Exhibit A</b>The board</a>
+    <a href="#stackup"><b>SH-LAB/02</b>Network</a>
+    <a href="#signals"><b>SH-LAB/03</b>Signals</a>
+    <a href="#hardening"><b>SH-LAB/04</b>Hardening</a>
+    <a href="#parts"><b>SH-LAB/05</b>Parts</a>
+    <a href="#ir-01"><b>IR-01</b>IR-01</a>
+    <a href="#ir-02"><b>IR-02</b>IR-02</a>
+    <a href="#ir-03"><b>IR-03</b>IR-03</a>
+  </nav>
   <span class="case-cue" aria-hidden="true">Scroll to read the file</span>
   <button class="case-skip" type="button" hidden>Skip intro</button>
 </section>
 
 <div class="sheet">
-<section class="plate" id="board" aria-label="Raspberry Pi 5 board">
+<section class="is-file plate" id="board" aria-label="Raspberry Pi 5 board">
+  <div class="file-cover" aria-hidden="true"><span class="file-cover-tab">Exhibit A</span><p class="case-label"><b>FILE EXHIBIT A</b><br>The board<br><span>Top view, illustrative</span></p><span class="case-stamp case-stamp-big">Evidence</span><span class="file-cover-note">Handle via: tailnet only</span></div>
+  <p class="file-tab" aria-hidden="true"><b>Exhibit A</b> The board</p>
   <div class="shell">
     <div class="plate-stage">
       <figure class="board-fig" id="board-fig">
@@ -261,7 +313,9 @@
   </div>
 </section>
 
-<section class="section" id="stackup" aria-labelledby="stackup-title">
+<section class="is-file section" id="stackup" aria-labelledby="stackup-title">
+  <div class="file-cover" aria-hidden="true"><span class="file-cover-tab">SH-LAB/02</span><p class="case-label"><b>FILE SH-LAB/02</b><br>Network<br><span>Six layers of defense</span></p><span class="case-stamp case-stamp-big">Classified</span><span class="file-cover-note">Handle via: tailnet only</span></div>
+  <p class="file-tab" aria-hidden="true"><b>SH-LAB/02</b> Network</p>
   <div class="shell">
     <div class="sec-head">
       <p class="label">Stack-up</p>
@@ -278,6 +332,7 @@
       </div>
       <ol class="stack" id="stack">
         <li class="band cu">
+          <span class="divider-tab" aria-hidden="true">L1 · Edge</span>
           <span class="lid">L1</span>
           <div class="band-body">
             <h3>Network edge</h3>
@@ -287,6 +342,7 @@
           <span class="stop" aria-hidden="true"></span>
         </li>
         <li class="band fr4">
+          <span class="divider-tab" aria-hidden="true">L2 · Mesh</span>
           <span class="lid">L2</span>
           <div class="band-body">
             <h3>Private mesh</h3>
@@ -295,6 +351,7 @@
           <p class="band-tag">Tailscale · WireGuard · Tailnet Lock</p>
         </li>
         <li class="band cu">
+          <span class="divider-tab" aria-hidden="true">L3 · Access</span>
           <span class="lid">L3</span>
           <div class="band-body">
             <h3>Service access</h3>
@@ -303,6 +360,7 @@
           <p class="band-tag">Reverse proxy · automatic TLS</p>
         </li>
         <li class="band fr4">
+          <span class="divider-tab" aria-hidden="true">L4 · Firewall</span>
           <span class="lid">L4</span>
           <div class="band-body">
             <h3>Host firewall</h3>
@@ -311,6 +369,7 @@
           <p class="band-tag">UFW · per-subnet rules</p>
         </li>
         <li class="band cu">
+          <span class="divider-tab" aria-hidden="true">L5 · Segments</span>
           <span class="lid">L5</span>
           <div class="band-body">
             <h3>Segmentation</h3>
@@ -319,6 +378,7 @@
           <p class="band-tag">Docker bridge networks</p>
         </li>
         <li class="band fr4">
+          <span class="divider-tab" aria-hidden="true">L6 · DNS</span>
           <span class="lid">L6</span>
           <div class="band-body">
             <h3>DNS, on the way out</h3>
@@ -335,7 +395,9 @@
   </div>
 </section>
 
-<section class="section" id="signals" aria-labelledby="signals-title">
+<section class="is-file section" id="signals" aria-labelledby="signals-title">
+  <div class="file-cover" aria-hidden="true"><span class="file-cover-tab">SH-LAB/03</span><p class="case-label"><b>FILE SH-LAB/03</b><br>Signals<br><span>Monitoring and alerting</span></p><span class="case-stamp case-stamp-big">Classified</span><span class="file-cover-note">Handle via: tailnet only</span></div>
+  <p class="file-tab" aria-hidden="true"><b>SH-LAB/03</b> Signals</p>
   <div class="shell">
     <div class="sec-head">
       <p class="label">Monitoring</p>
@@ -386,12 +448,26 @@
       <div>
         <h3>The alert path is tested too.</h3>
         <p>I sent a synthetic alert through Alertmanager and confirmed it arrived on my phone. A rule that fires into a broken delivery pipeline protects nothing.</p>
+        <figure class="printout" aria-label="Printout of the synthetic test alert">
+          <i class="staple" aria-hidden="true"></i>
+          <pre>ALERTMANAGER · NOTIFICATION
+---------------------------
+[FIRING:1] synthetic test
+instance    pi5
+severity    test
+route       phone (push)
+---------------------------
+delivered   yes
+resolved    yes</pre>
+        </figure>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section" id="hardening" aria-labelledby="hardening-title">
+<section class="is-file section" id="hardening" aria-labelledby="hardening-title">
+  <div class="file-cover" aria-hidden="true"><span class="file-cover-tab">SH-LAB/04</span><p class="case-label"><b>FILE SH-LAB/04</b><br>Hardening<br><span>Container baseline</span></p><span class="case-stamp case-stamp-big">Classified</span><span class="file-cover-note">Handle via: tailnet only</span></div>
+  <p class="file-tab" aria-hidden="true"><b>SH-LAB/04</b> Hardening</p>
   <div class="shell">
     <div class="sec-head">
       <p class="label">Hardening</p>
@@ -428,7 +504,9 @@
   </div>
 </section>
 
-<section class="section" id="parts" aria-labelledby="parts-title">
+<section class="is-file section" id="parts" aria-labelledby="parts-title">
+  <div class="file-cover" aria-hidden="true"><span class="file-cover-tab">SH-LAB/05</span><p class="case-label"><b>FILE SH-LAB/05</b><br>Parts<br><span>Bill of materials</span></p><span class="case-stamp case-stamp-big">Inventory</span><span class="file-cover-note">Handle via: tailnet only</span></div>
+  <p class="file-tab" aria-hidden="true"><b>SH-LAB/05</b> Parts</p>
   <div class="shell">
     <div class="sec-head">
       <p class="label">Parts list</p>
@@ -470,7 +548,8 @@
   </div>
 </section>
 
-<section class="section" id="incidents" aria-labelledby="incidents-title">
+<section class="is-file section" id="incidents" aria-labelledby="incidents-title">
+  <p class="file-tab" aria-hidden="true"><b>SH-LAB/06</b> Incident reports</p>
   <div class="shell">
     <div class="sec-head">
       <p class="label">Incident reports</p>
@@ -480,9 +559,12 @@
       </div>
     </div>
 
-    <article class="report" id="ir-01" aria-labelledby="ir-01-title">
+    <article class="report is-file" id="ir-01" aria-labelledby="ir-01-title">
+  <div class="file-cover" aria-hidden="true"><span class="file-cover-tab">IR-01</span><p class="case-label"><b>FILE IR-01</b><br>IR-01<br><span>Monitoring and detection</span></p><span class="case-stamp case-stamp-big">Classified</span><span class="file-cover-note">Handle via: tailnet only</span></div>
+  <p class="file-tab" aria-hidden="true"><b>IR-01</b> IR-01</p>
       <header class="report-meta">
         <p class="report-id">IR-01</p>
+        <span class="file-stamp" aria-hidden="true">Closed</span>
         <p class="report-cat">Monitoring and detection</p>
         <p class="status"><span class="pass">Verified</span></p>
       </header>
@@ -507,9 +589,12 @@
       </div>
     </article>
 
-    <article class="report" id="ir-02" aria-labelledby="ir-02-title">
+    <article class="report is-file" id="ir-02" aria-labelledby="ir-02-title">
+  <div class="file-cover" aria-hidden="true"><span class="file-cover-tab">IR-02</span><p class="case-label"><b>FILE IR-02</b><br>IR-02<br><span>Linux recovery</span></p><span class="case-stamp case-stamp-big">Classified</span><span class="file-cover-note">Handle via: tailnet only</span></div>
+  <p class="file-tab" aria-hidden="true"><b>IR-02</b> IR-02</p>
       <header class="report-meta">
         <p class="report-id">IR-02</p>
+        <span class="file-stamp" aria-hidden="true">Closed</span>
         <p class="report-cat">Linux recovery</p>
         <p class="status"><span class="pass">Verified</span></p>
       </header>
@@ -527,9 +612,12 @@
       </div>
     </article>
 
-    <article class="report" id="ir-03" aria-labelledby="ir-03-title">
+    <article class="report is-file" id="ir-03" aria-labelledby="ir-03-title">
+  <div class="file-cover" aria-hidden="true"><span class="file-cover-tab">IR-03</span><p class="case-label"><b>FILE IR-03</b><br>IR-03<br><span>Backup automation</span></p><span class="case-stamp case-stamp-big">Classified</span><span class="file-cover-note">Handle via: tailnet only</span></div>
+  <p class="file-tab" aria-hidden="true"><b>IR-03</b> IR-03</p>
       <header class="report-meta">
         <p class="report-id">IR-03</p>
+        <span class="file-stamp" aria-hidden="true">Closed</span>
         <p class="report-cat">Backup automation</p>
         <p class="status"><span class="pass">Verified</span></p>
       </header>
