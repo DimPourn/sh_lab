@@ -16,187 +16,182 @@
 <meta property="og:url" content="https://dimpourn.github.io/sh_lab/">
 <link rel="preload" href="./assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./site.css?v=motion1">
-<script>(function(){var d=document.documentElement;if(!matchMedia("(prefers-reduced-motion: reduce)").matches){d.classList.add("motion");setTimeout(function(){if(!window.__shlabMotion)d.classList.remove("motion")},3000)}})();</script>
+<link rel="stylesheet" href="./site.css?v=stage1">
+<script>(function(){var d=document.documentElement;d.classList.add("js");if(!matchMedia("(prefers-reduced-motion: reduce)").matches){d.classList.add("motion");setTimeout(function(){if(!window.__shlabMotion)d.classList.remove("motion")},3000)}})();</script>
 </head>
 <body>
 
 <a class="skip-link" href="#main">Skip to content</a>
 
-<header class="masthead">
-  <div class="shell masthead-inner">
-    <a class="brand" href="#top" aria-label="sh_lab, back to top">
-      <svg class="brand-mark" viewBox="0 0 32 22" aria-hidden="true"><rect x="0.5" y="0.5" width="31" height="21" rx="3"/><circle cx="4.5" cy="4.5" r="1.6"/><circle cx="4.5" cy="17.5" r="1.6"/><rect class="die" x="11" y="6" width="9" height="9" rx="1"/></svg>
-      <span>sh_lab</span>
-    </a>
-    <nav class="masthead-nav" aria-label="Sections">
-      <a href="#stackup">Stack-up</a>
-      <a href="#signals">Monitoring</a>
-      <a href="#hardening">Hardening</a>
-      <a href="#parts">Parts</a>
-      <a href="#incidents">Incidents</a>
-    </nav>
-    <p class="masthead-rev">Rev 2026.11</p>
-  </div>
-  <span class="progress" aria-hidden="true"></span>
-</header>
+<span class="progress" aria-hidden="true"></span>
 
 <main id="main">
 
 <section class="hero" id="top" aria-labelledby="hero-title">
   <div class="hero-mesh" id="hero-mesh" aria-hidden="true"></div>
-  <div class="shell hero-grid">
-    <div class="hero-copy">
-      <p class="label">Dimitris Pournatzis · Cybersecurity homelab</p>
-      <h1 id="hero-title">One Raspberry Pi&nbsp;5. <span>No open ports.</span></h1>
-      <p class="lede">sh_lab is the homelab where I practice Linux hardening, private networking, monitoring, and recovery. Every service sits behind an encrypted mesh, Prometheus watches all of it, and the backups leave the board.</p>
-      <div class="cta">
-        <a class="btn btn-solid" href="#stackup">See how it’s secured</a>
-        <a class="btn btn-line" href="#incidents">Read the incident reports</a>
+  <div class="hero-grid-lines" aria-hidden="true"></div>
+  <div class="shell hero-inner">
+    <p class="label hero-label">Dimitris Pournatzis · Cybersecurity homelab</p>
+    <h1 id="hero-title"><span class="h1-a">One Raspberry Pi&nbsp;5.</span> <span class="h1-b">No open ports.</span></h1>
+    <div class="scan" id="scan" aria-hidden="true">
+      <div class="scan-frame">
+        <canvas class="scan-canvas" id="scan-canvas"></canvas>
+        <i class="crop crop-tl"></i><i class="crop crop-tr"></i><i class="crop crop-bl"></i><i class="crop crop-br"></i>
       </div>
+      <p class="scan-hud"><span>tcp 1–1024</span><span>scanned <b id="scan-count">1024</b></span><span class="scan-open">open <b>0</b></span></p>
     </div>
-
-    <figure class="board-fig" id="board-fig">
-      <svg class="board" viewBox="0 0 1000 700" role="img" aria-labelledby="board-title board-desc">
-        <title id="board-title">Raspberry Pi 5, top view</title>
-        <desc id="board-desc">Technical drawing of the Raspberry Pi 5 that runs sh_lab, with four numbered callouts: the Ethernet port, the BCM2712 processor, the activity LED, and the microSD slot on the underside.</desc>
-        <defs>
-          <pattern id="gpio-pins" x="127.3" y="87.3" width="25.4" height="25.4" patternUnits="userSpaceOnUse">
-            <rect x="8" y="8" width="9.4" height="9.4" class="pad"/>
-          </pattern>
-          <pattern id="ffc-pins" x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse">
-            <rect x="1" y="1.5" width="4" height="4" class="pad"/>
-          </pattern>
-        </defs>
-
-        <rect class="pcb" x="60" y="70" width="850" height="560" rx="30"/>
-        <rect class="pcb-edge" x="68" y="78" width="834" height="544" rx="24"/>
-
-        <g class="traces" aria-hidden="true">
-          <path d="M745 168 H640 V300"/>
-          <path d="M745 330 H670"/>
-          <path d="M600 139 V300 M620 139 V300"/>
-          <path d="M560 334 H500 M560 343 H500 M560 352 H500 M560 361 H500 M560 370 H500 M560 379 H500"/>
-          <path d="M300 268 H330 M300 280 H330 M300 292 H330 M300 304 H330 M300 316 H330 M300 328 H330 M300 340 H330 M300 352 H330 M300 364 H330"/>
-          <path d="M360 400 V530 L319 571 V585 M374 400 V536 L333 577 V585"/>
-          <path d="M450 400 V540 L453 543 V585 M464 400 V532 L467 535 V585"/>
-          <path d="M172 565 V530"/>
-          <path d="M210 500 H312 L345 467 V400"/>
-          <path d="M520 400 V545 L555 575 M535 400 V540 L645 575"/>
-          <path id="route" d="M738 505 H700 V352 H498"/>
-        </g>
-        <g class="packets" id="packets" aria-hidden="true"></g>
-
-        <g class="part" data-part="hole" aria-hidden="true">
-          <circle class="ring" cx="95" cy="105" r="15"/><circle class="hole" cx="95" cy="105" r="9"/>
-          <circle class="ring" cx="675" cy="105" r="15"/><circle class="hole" cx="675" cy="105" r="9"/>
-          <circle class="ring" cx="95" cy="595" r="15"/><circle class="hole" cx="95" cy="595" r="9"/>
-          <circle class="ring" cx="675" cy="595" r="15"/><circle class="hole" cx="675" cy="595" r="9"/>
-        </g>
-
-        <g class="part" aria-hidden="true">
-          <rect class="plastic" x="126" y="86" width="511" height="53" rx="3"/>
-          <rect x="127.3" y="87.3" width="508" height="50.8" fill="url(#gpio-pins)"/>
-          <text class="silk" x="126" y="160">J8 · GPIO</text>
-          <rect class="plastic-light" x="700" y="92" width="44" height="26" rx="2"/>
-          <text class="silk" x="700" y="138">FAN</text>
-        </g>
-
-        <g class="part" aria-hidden="true">
-          <rect class="metal" x="745" y="100" width="190" height="135" rx="4"/>
-          <path class="seam" d="M760 167 H935 M760 118 V217"/>
-          <rect class="metal" x="745" y="262" width="190" height="135" rx="4"/>
-          <path class="seam" d="M760 329 H935 M760 280 V379"/>
-          <text class="silk" x="770" y="253">USB</text>
-          <text class="silk" x="770" y="415">USB</text>
-        </g>
-
-        <g class="part" data-part="eth">
-          <rect class="metal" x="720" y="430" width="215" height="160" rx="4"/>
-          <rect class="seam-fill" x="742" y="452" width="150" height="116" rx="3"/>
-          <path class="seam" d="M892 470 H935 M892 550 H935"/>
-          <text class="silk" x="722" y="612">ETH</text>
-        </g>
-
-        <g class="part" aria-hidden="true">
-          <rect class="chip" x="560" y="300" width="110" height="110" rx="4"/>
-          <text class="chip-text" x="615" y="360" text-anchor="middle">RP1</text>
-        </g>
-
-        <g class="part" data-part="soc">
-          <rect class="chip" x="322" y="222" width="186" height="186" rx="6"/>
-          <rect class="metal lid" x="336" y="236" width="158" height="158" rx="4"/>
-          <text class="lid-text" x="415" y="312" text-anchor="middle">BCM2712</text>
-          <text class="lid-sub" x="415" y="336" text-anchor="middle">4 × A76 · 2.4 GHz</text>
-        </g>
-
-        <g class="part" aria-hidden="true">
-          <rect class="chip" x="190" y="250" width="110" height="130" rx="4"/>
-          <text class="chip-text small" x="245" y="320" text-anchor="middle">LPDDR4X</text>
-          <rect class="chip" x="150" y="470" width="60" height="60" rx="3"/>
-          <text class="silk" x="218" y="528">PMIC</text>
-        </g>
-
-        <g class="part" aria-hidden="true">
-          <rect class="metal" x="127" y="565" width="90" height="75" rx="10"/>
-          <text class="silk" x="127" y="556">PWR IN</text>
-          <rect class="metal" x="283" y="585" width="72" height="55" rx="6"/>
-          <rect class="metal" x="417" y="585" width="72" height="55" rx="6"/>
-          <text class="silk" x="290" y="572">HDMI0</text>
-          <text class="silk" x="424" y="572">HDMI1</text>
-          <rect class="plastic-light" x="520" y="575" width="70" height="22" rx="2"/>
-          <rect class="plastic-light" x="610" y="575" width="70" height="22" rx="2"/>
-          <text class="silk" x="520" y="616">CAM/DISP</text>
-        </g>
-
-        <g class="part" aria-hidden="true">
-          <rect class="plastic-light" x="60" y="180" width="26" height="112" rx="2"/>
-          <rect x="66" y="184" width="14" height="105" fill="url(#ffc-pins)"/>
-          <text class="silk" x="96" y="200">PCIe</text>
-          <rect class="plastic" x="54" y="508" width="20" height="32" rx="3"/>
-        </g>
-
-        <g class="part" data-part="sd">
-          <rect class="hidden-line" x="42" y="300" width="148" height="118" rx="4"/>
-          <text class="silk dim" x="100" y="364">µSD</text>
-        </g>
-
-        <g class="part" data-part="led">
-          <circle class="led-pwr" cx="102" cy="436" r="7"/>
-          <circle class="led-act" cx="102" cy="456" r="7"/>
-          <text class="silk" x="116" y="441">PWR</text>
-          <text class="silk" x="116" y="461">ACT</text>
-        </g>
-
-        <text class="silk mark" x="560" y="472">SH_LAB · PI 5</text>
-        <text class="silk mark" x="560" y="492">REV 2026.11</text>
-
-
-        <g class="balloons" aria-hidden="true">
-          <path class="leader" d="M935 510 H951"/>
-          <circle cx="970" cy="510" r="19"/><text x="970" y="517" text-anchor="middle">1</text>
-          <path class="leader" d="M494 236 L527 207"/>
-          <circle cx="541" cy="194" r="19"/><text x="541" y="201" text-anchor="middle">2</text>
-          <path class="leader" d="M95 456 L44 506"/>
-          <circle cx="30" cy="520" r="19"/><text x="30" y="527" text-anchor="middle">3</text>
-          <path class="leader" d="M48 300 L32 262"/>
-          <circle cx="30" cy="243" r="19"/><text x="30" y="250" text-anchor="middle">4</text>
-        </g>
-      </svg>
-
-      <figcaption>
-        <ol class="legend">
-          <li><a href="#stackup" data-part="eth"><span class="balloon">1</span><span><strong>Ethernet</strong> Tailnet only. No ports are forwarded, so nothing here answers the open internet.</span></a></li>
-          <li><a href="#hardening" data-part="soc"><span class="balloon">2</span><span><strong>BCM2712</strong> Runs every service as a hardened container on its own network.</span></a></li>
-          <li><a href="#signals" data-part="led"><span class="balloon">3</span><span><strong>Activity LED</strong> Prometheus watches each service, and alerts reach my phone.</span></a></li>
-          <li><a href="#ir-03" data-part="sd"><span class="balloon">4</span><span><strong>microSD, underside</strong> Backups leave the board for a separate device and are checked by checksum.</span></a></li>
-        </ol>
-        <p class="fig-note">Fig. 1 · Top view, illustrative. Dashed outlines sit on the underside.</p>
-      </figcaption>
-    </figure>
+    <p class="lede">sh_lab is the homelab where I practice Linux hardening, private networking, monitoring, and recovery. Every service sits behind an encrypted mesh, Prometheus watches all of it, and the backups leave the board.</p>
+    <div class="cta">
+      <a class="btn btn-solid" href="#stackup">See how it’s secured</a>
+      <a class="btn btn-line" href="#incidents">Read the incident reports</a>
+    </div>
   </div>
+  <span class="hero-cue" aria-hidden="true"><i></i></span>
+</section>
 
+<div class="sheet">
+<section class="plate" id="board" aria-label="Raspberry Pi 5 board">
   <div class="shell">
+    <div class="plate-stage">
+      <figure class="board-fig" id="board-fig">
+        <svg class="board" viewBox="0 0 1000 700" role="img" aria-labelledby="board-title board-desc">
+          <title id="board-title">Raspberry Pi 5, top view</title>
+          <desc id="board-desc">Technical drawing of the Raspberry Pi 5 that runs sh_lab, with four numbered callouts: the Ethernet port, the BCM2712 processor, the activity LED, and the microSD slot on the underside.</desc>
+          <defs>
+            <pattern id="gpio-pins" x="127.3" y="87.3" width="25.4" height="25.4" patternUnits="userSpaceOnUse">
+              <rect x="8" y="8" width="9.4" height="9.4" class="pad"/>
+            </pattern>
+            <pattern id="ffc-pins" x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse">
+              <rect x="1" y="1.5" width="4" height="4" class="pad"/>
+            </pattern>
+          </defs>
+
+          <rect class="pcb" x="60" y="70" width="850" height="560" rx="30"/>
+          <rect class="pcb-edge" x="68" y="78" width="834" height="544" rx="24"/>
+
+          <g class="traces" aria-hidden="true">
+            <path d="M745 168 H640 V300"/>
+            <path d="M745 330 H670"/>
+            <path d="M600 139 V300 M620 139 V300"/>
+            <path d="M560 334 H500 M560 343 H500 M560 352 H500 M560 361 H500 M560 370 H500 M560 379 H500"/>
+            <path d="M300 268 H330 M300 280 H330 M300 292 H330 M300 304 H330 M300 316 H330 M300 328 H330 M300 340 H330 M300 352 H330 M300 364 H330"/>
+            <path d="M360 400 V530 L319 571 V585 M374 400 V536 L333 577 V585"/>
+            <path d="M450 400 V540 L453 543 V585 M464 400 V532 L467 535 V585"/>
+            <path d="M172 565 V530"/>
+            <path d="M210 500 H312 L345 467 V400"/>
+            <path d="M520 400 V545 L555 575 M535 400 V540 L645 575"/>
+            <path id="route" d="M738 505 H700 V352 H498"/>
+          </g>
+          <g class="packets" id="packets" aria-hidden="true"></g>
+
+          <g class="part" data-part="hole" aria-hidden="true">
+            <circle class="ring" cx="95" cy="105" r="15"/><circle class="hole" cx="95" cy="105" r="9"/>
+            <circle class="ring" cx="675" cy="105" r="15"/><circle class="hole" cx="675" cy="105" r="9"/>
+            <circle class="ring" cx="95" cy="595" r="15"/><circle class="hole" cx="95" cy="595" r="9"/>
+            <circle class="ring" cx="675" cy="595" r="15"/><circle class="hole" cx="675" cy="595" r="9"/>
+          </g>
+
+          <g class="part" aria-hidden="true">
+            <rect class="plastic" x="126" y="86" width="511" height="53" rx="3"/>
+            <rect x="127.3" y="87.3" width="508" height="50.8" fill="url(#gpio-pins)"/>
+            <text class="silk" x="126" y="160">J8 · GPIO</text>
+            <rect class="plastic-light" x="700" y="92" width="44" height="26" rx="2"/>
+            <text class="silk" x="700" y="138">FAN</text>
+          </g>
+
+          <g class="part" aria-hidden="true">
+            <rect class="metal" x="745" y="100" width="190" height="135" rx="4"/>
+            <path class="seam" d="M760 167 H935 M760 118 V217"/>
+            <rect class="metal" x="745" y="262" width="190" height="135" rx="4"/>
+            <path class="seam" d="M760 329 H935 M760 280 V379"/>
+            <text class="silk" x="770" y="253">USB</text>
+            <text class="silk" x="770" y="415">USB</text>
+          </g>
+
+          <g class="part" data-part="eth">
+            <rect class="metal" x="720" y="430" width="215" height="160" rx="4"/>
+            <rect class="seam-fill" x="742" y="452" width="150" height="116" rx="3"/>
+            <path class="seam" d="M892 470 H935 M892 550 H935"/>
+            <text class="silk" x="722" y="612">ETH</text>
+          </g>
+
+          <g class="part" aria-hidden="true">
+            <rect class="chip" x="560" y="300" width="110" height="110" rx="4"/>
+            <text class="chip-text" x="615" y="360" text-anchor="middle">RP1</text>
+          </g>
+
+          <g class="part" data-part="soc">
+            <rect class="chip" x="322" y="222" width="186" height="186" rx="6"/>
+            <rect class="metal lid" x="336" y="236" width="158" height="158" rx="4"/>
+            <text class="lid-text" x="415" y="312" text-anchor="middle">BCM2712</text>
+            <text class="lid-sub" x="415" y="336" text-anchor="middle">4 × A76 · 2.4 GHz</text>
+          </g>
+
+          <g class="part" aria-hidden="true">
+            <rect class="chip" x="190" y="250" width="110" height="130" rx="4"/>
+            <text class="chip-text small" x="245" y="320" text-anchor="middle">LPDDR4X</text>
+            <rect class="chip" x="150" y="470" width="60" height="60" rx="3"/>
+            <text class="silk" x="218" y="528">PMIC</text>
+          </g>
+
+          <g class="part" aria-hidden="true">
+            <rect class="metal" x="127" y="565" width="90" height="75" rx="10"/>
+            <text class="silk" x="127" y="556">PWR IN</text>
+            <rect class="metal" x="283" y="585" width="72" height="55" rx="6"/>
+            <rect class="metal" x="417" y="585" width="72" height="55" rx="6"/>
+            <text class="silk" x="290" y="572">HDMI0</text>
+            <text class="silk" x="424" y="572">HDMI1</text>
+            <rect class="plastic-light" x="520" y="575" width="70" height="22" rx="2"/>
+            <rect class="plastic-light" x="610" y="575" width="70" height="22" rx="2"/>
+            <text class="silk" x="520" y="616">CAM/DISP</text>
+          </g>
+
+          <g class="part" aria-hidden="true">
+            <rect class="plastic-light" x="60" y="180" width="26" height="112" rx="2"/>
+            <rect x="66" y="184" width="14" height="105" fill="url(#ffc-pins)"/>
+            <text class="silk" x="96" y="200">PCIe</text>
+            <rect class="plastic" x="54" y="508" width="20" height="32" rx="3"/>
+          </g>
+
+          <g class="part" data-part="sd">
+            <rect class="hidden-line" x="42" y="300" width="148" height="118" rx="4"/>
+            <text class="silk dim" x="100" y="364">µSD</text>
+          </g>
+
+          <g class="part" data-part="led">
+            <circle class="led-pwr" cx="102" cy="436" r="7"/>
+            <circle class="led-act" cx="102" cy="456" r="7"/>
+            <text class="silk" x="116" y="441">PWR</text>
+            <text class="silk" x="116" y="461">ACT</text>
+          </g>
+
+          <text class="silk mark" x="560" y="472">SH_LAB · PI 5</text>
+          <text class="silk mark" x="560" y="492">REV 2026.11</text>
+
+
+          <g class="balloons" aria-hidden="true">
+            <path class="leader" d="M935 510 H951"/>
+            <circle cx="970" cy="510" r="19"/><text x="970" y="517" text-anchor="middle">1</text>
+            <path class="leader" d="M494 236 L527 207"/>
+            <circle cx="541" cy="194" r="19"/><text x="541" y="201" text-anchor="middle">2</text>
+            <path class="leader" d="M95 456 L44 506"/>
+            <circle cx="30" cy="520" r="19"/><text x="30" y="527" text-anchor="middle">3</text>
+            <path class="leader" d="M48 300 L32 262"/>
+            <circle cx="30" cy="243" r="19"/><text x="30" y="250" text-anchor="middle">4</text>
+          </g>
+        </svg>
+
+        <figcaption>
+          <ol class="legend">
+            <li><a href="#stackup" data-part="eth"><span class="balloon">1</span><span><strong>Ethernet</strong> Tailnet only. No ports are forwarded, so nothing here answers the open internet.</span></a></li>
+            <li><a href="#hardening" data-part="soc"><span class="balloon">2</span><span><strong>BCM2712</strong> Runs every service as a hardened container on its own network.</span></a></li>
+            <li><a href="#signals" data-part="led"><span class="balloon">3</span><span><strong>Activity LED</strong> Prometheus watches each service, and alerts reach my phone.</span></a></li>
+            <li><a href="#ir-03" data-part="sd"><span class="balloon">4</span><span><strong>microSD, underside</strong> Backups leave the board for a separate device and are checked by checksum.</span></a></li>
+          </ol>
+          <p class="fig-note">Fig. 1 · Top view, illustrative. Dashed outlines sit on the underside.</p>
+        </figcaption>
+      </figure>
+    </div>
     <dl class="specs" aria-label="Key specifications">
       <div><dt>Hardware</dt><dd>Raspberry Pi 5</dd></div>
       <div><dt>Inbound ports open to the internet</dt><dd>0</dd></div>
@@ -497,6 +492,7 @@
     </article>
   </div>
 </section>
+</div>
 
 </main>
 
@@ -520,6 +516,6 @@
 <script src="./vendor/DrawSVGPlugin.min.js" defer></script>
 <script src="./vendor/ScrambleTextPlugin.min.js" defer></script>
 <script src="./vendor/lenis.min.js" defer></script>
-<script src="./app.js?v=motion1" defer></script>
+<script src="./app.js?v=stage1" defer></script>
 </body>
 </html>
