@@ -379,7 +379,7 @@
 
     }
 
-    // ── Board plate: an exploded drawing that assembles as you scroll ─────
+    // ── Board plate: an exploded drawing that assembles once it is in view ──
     const stage = document.querySelector(".plate-stage");
     const board = fig.querySelector(".board");
     const parts = gsap.utils.toArray(".board .part");
@@ -410,18 +410,8 @@
 
     mm.add({ wide: "(min-width: 1081px)", narrow: "(max-width: 1080px)" }, (ctx) => {
       const { wide } = ctx.conditions;
-      const asm = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: stage,
-          start: wide ? "top top" : "top 85%",
-          end: wide ? "+=130%" : "center 45%",
-          scrub: 1,
-          pin: wide,
-          onUpdate: (self) => (self.progress > 0.92 ? traffic.play() : traffic.pause()),
-          onLeave: () => traffic.play(),
-        },
-      });
+      // Plays once when the board comes into view (it used to be pinned and scrubbed).
+      const asm = gsap.timeline({ defaults: { ease: "none" }, paused: true, onComplete: () => traffic.play() });
       asm.fromTo(board, {
         rotationX: 58, rotationZ: -14, scale: 0.8, y: 60, transformPerspective: 1500, transformOrigin: "50% 65%",
       }, { rotationX: 0, rotationZ: 0, scale: 1, y: 0, duration: 1, ease: "power2.out" }, 0);
@@ -440,6 +430,14 @@
         .fromTo(fig.querySelectorAll(".legend li, .fig-note"), { autoAlpha: 0, x: wide ? 40 : 0, y: wide ? 0 : 24, filter: "blur(8px)" }, {
           autoAlpha: 1, x: 0, y: 0, filter: "blur(0px)", duration: 0.3, stagger: 0.05, ease: "power3.out",
         }, 0.7);
+      asm.timeScale(0.44); // about 2.6 s end to end
+      const st = ScrollTrigger.create({
+        trigger: stage,
+        start: wide ? "top 72%" : "top 82%",
+        once: true,
+        onEnter: () => gsap.delayedCall(0.3, () => asm.play()), // let the file cover lift first
+      });
+      if (window.scrollY > st.start) asm.progress(1);
       return () => traffic.pause();
     });
 

@@ -256,10 +256,18 @@
 
   // ── Sections as files: covers that open on arrival, stamps, the stapled printout ──
   function sectionFiles() {
+    // Each cover opens once, in time, as its file comes into view. (Scrubbing tied it to the
+    // scroll, so the last file, which can never reach the top of the screen, stayed half open.)
     for (const c of document.querySelectorAll(".is-file > .file-cover")) {
-      gsap.timeline({ scrollTrigger: { trigger: c.parentElement, start: "top 85%", end: "top 22%", scrub: 0.5 } })
-        .fromTo(c, { rotationX: 0, transformPerspective: 1800, transformOrigin: "50% 0%" }, { rotationX: -94, ease: "power1.in", duration: 1 }, 0)
-        .to(c, { autoAlpha: 0, duration: 0.22, ease: "none" }, 0.78);
+      gsap.set(c, { transformPerspective: 1800, transformOrigin: "50% 0%" });
+      const t = gsap.timeline({ paused: true })
+        .to(c, { rotationX: -94, duration: 0.85, ease: "power2.in" }, 0)
+        .to(c, { autoAlpha: 0, duration: 0.25, ease: "none" }, 0.62);
+      const st = ScrollTrigger.create({
+        trigger: c.parentElement, start: "top 78%", once: true,
+        onEnter: () => { sound.play("paper", 0.6); t.play(); },
+      });
+      if (window.scrollY > st.start) t.progress(1);
     }
     for (const s of document.querySelectorAll(".file-stamp")) {
       gsap.fromTo(s, { autoAlpha: 0, scale: 1.8, rotation: -7 }, {
@@ -326,10 +334,12 @@
     });
   }
 
-  // ── Sound: synthesized with Web Audio (no files), off until the visitor turns it on ──
+  // ── Sound: synthesized with Web Audio (no files), on by default, muted with one button ──
   function createSound() {
     let on = false, ctx = null;
-    try { on = localStorage.getItem("shlab-sound") === "1"; } catch { /* storage blocked */ }
+    // On unless the visitor turned it off. Browsers still hold audio until the first click, tap or key.
+    on = true;
+    try { on = localStorage.getItem("shlab-sound") !== "0"; } catch { /* storage blocked */ }
     const ready = () => {
       if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ctx = new AC(); }
       if (ctx.state === "suspended") ctx.resume();
@@ -377,7 +387,7 @@
     show();
     btn.addEventListener("click", () => { sound.set(!sound.on); show(); sound.unlock(); setTimeout(() => sound.play("click"), 30); });
     // Browsers only start audio after a gesture: the first tap anywhere unlocks it if it was left on.
-    window.addEventListener("pointerdown", () => sound.unlock(), { once: true });
+    for (const type of ["pointerdown", "keydown", "touchend"]) window.addEventListener(type, () => sound.unlock(), { once: true, passive: true });
   }
 
   // If anything throws, fall back to the static opened file.
