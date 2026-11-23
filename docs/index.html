@@ -24,6 +24,8 @@
 <link rel="preload" href="./assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./site.css?v=stage1">
+<link rel="preload" href="./assets/fonts/courier-prime-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./case.css?v=1">
 <script>(function(){var d=document.documentElement;d.classList.add("js");if(!matchMedia("(prefers-reduced-motion: reduce)").matches){d.classList.add("motion");setTimeout(function(){if(!window.__shlabMotion)d.classList.remove("motion")},3000)}})();</script>
 </head>
 <body>
@@ -34,26 +36,76 @@
 
 <main id="main">
 
-<section class="hero" id="top" aria-labelledby="hero-title">
-  <div class="hero-mesh" id="hero-mesh" aria-hidden="true"></div>
-  <div class="hero-grid-lines" aria-hidden="true"></div>
-  <div class="shell hero-inner">
-    <p class="label hero-label">Dimitris Pournatzis · Cybersecurity homelab</p>
-    <h1 id="hero-title"><span class="h1-a">One Raspberry Pi&nbsp;5.</span> <span class="h1-b">No open ports.</span></h1>
-    <div class="scan" id="scan" aria-hidden="true">
-      <div class="scan-frame">
-        <canvas class="scan-canvas" id="scan-canvas"></canvas>
-        <i class="crop crop-tl"></i><i class="crop crop-tr"></i><i class="crop crop-bl"></i><i class="crop crop-br"></i>
+<section class="case" id="top" aria-labelledby="hero-title">
+  <canvas class="case-dust" aria-hidden="true"></canvas>
+  <div class="case-stage">
+    <div class="case-fx">
+      <div class="case-cam">
+        <div class="case-walk">
+          <div class="case-desk" aria-hidden="true"><i class="case-mat"></i><i class="case-pen"></i><i class="case-ring"></i></div>
+          <div class="case-folder case-pile case-pile-a" aria-hidden="true">
+            <i class="case-panel"></i><span class="case-tab">NETWORK</span>
+            <div class="case-face"><p class="case-label"><b>FILE SH-LAB/02</b><br>Six layers of defense</p></div>
+          </div>
+          <div class="case-folder case-pile case-pile-b" aria-hidden="true">
+            <i class="case-panel"></i><span class="case-tab">INC-01</span>
+            <div class="case-face"><p class="case-label"><b>FILE SH-LAB/INC-01</b><br>Observability</p><span class="case-stamp case-stamp-big">Classified</span></div>
+          </div>
+          <div class="case-folder case-pile case-pile-c" aria-hidden="true">
+            <i class="case-panel"></i><span class="case-tab">INC-02</span>
+            <div class="case-face"><p class="case-label"><b>FILE SH-LAB/INC-02</b><br>Linux recovery</p></div>
+          </div>
+          <div class="case-folder case-main">
+            <i class="case-panel" aria-hidden="true"></i><span class="case-tab" aria-hidden="true">SH-LAB/01</span>
+            <article class="case-sheet" aria-label="Security assessment">
+              <div class="case-sheet-head"><span>File SH-LAB/01</span><span>Class: <s>Restricted</s> <b>Public</b></span></div>
+              <p class="case-sheet-title">Security assessment</p>
+              <p class="case-sheet-sub">Raspberry Pi 5 homelab</p>
+              <dl class="case-fields">
+                <dt>Subject</dt><dd><span class="case-v">sh_lab, one Raspberry Pi 5<i class="case-bar"></i></span></dd>
+                <dt>Exposure</dt><dd><span class="case-v">0 inbound ports · 0 forwards<i class="case-bar"></i></span></dd>
+                <dt>Access</dt><dd><span class="case-v">WireGuard key per device · Tailnet Lock<i class="case-bar"></i></span></dd>
+                <dt>Watch</dt><dd><span class="case-v">Prometheus → Alertmanager → phone<i class="case-bar"></i></span></dd>
+                <dt>Recovery</dt><dd><span class="case-v">Checksummed backups, restore steps<i class="case-bar"></i></span></dd>
+                <dt>Findings</dt><dd><span class="case-v">3 incidents, each closed with proof<i class="case-bar"></i></span></dd>
+                <dt>Public IP</dt><dd><span class="case-v"><span aria-hidden="true">203.0.113.0</span><span class="case-sr">redacted</span><i class="case-bar is-kept"></i></span></dd>
+                <dt>LAN range</dt><dd><span class="case-v"><span aria-hidden="true">192.0.2.0/24</span><span class="case-sr">redacted</span><i class="case-bar is-kept"></i></span></dd>
+              </dl>
+              <div class="case-sheet-foot"><span>Prepared by D. Pournatzis</span><span>Page 1 / 6</span></div>
+              <span class="case-stamp case-verified" aria-hidden="true">Verified</span>
+            </article>
+            <div class="case-cover">
+              <div class="case-face case-front" aria-hidden="true">
+                <p class="case-label"><b>FILE SH-LAB/01</b><br>Security assessment<br>Raspberry Pi 5 homelab<br><span>Subject: D. Pournatzis</span></p>
+                <span class="case-stamp case-stamp-big">Classified</span>
+                <span class="case-stamp case-stamp-blue">Declassified · 2026</span>
+                <span class="case-handle">Handle via: tailnet only</span>
+                <i class="case-grommet"></i>
+                <i class="case-shade"></i>
+              </div>
+              <div class="case-face case-inner">
+                <p class="case-slip">Routing slip · SH-LAB/01</p>
+                <p class="case-tofrom">To: whoever opens this<br>From: Dimitris Pournatzis</p>
+                <h1 id="hero-title"><span class="case-h1a">A homelab,</span> <span class="case-h1b">declassified.</span></h1>
+                <p class="case-lede">One Raspberry Pi 5. No open ports. Six layers between the internet and a service, and every incident closed with proof. Two lines stay redacted on purpose.</p>
+                <div class="case-cta">
+                  <a class="case-btn case-btn-solid" href="#board">Open the file</a>
+                  <a class="case-btn case-btn-line" href="#incidents">Read the incident reports</a>
+                </div>
+                <i class="case-shade" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="scan-hud"><span>tcp 1–1024</span><span>scanned <b id="scan-count">1024</b></span><span class="scan-open">open <b>0</b></span></p>
-    </div>
-    <p class="lede">sh_lab is the homelab where I practice Linux hardening, private networking, monitoring, and recovery. Every service sits behind an encrypted mesh, Prometheus watches all of it, and the backups leave the board.</p>
-    <div class="cta">
-      <a class="btn btn-solid" href="#stackup">See how it’s secured</a>
-      <a class="btn btn-line" href="#incidents">Read the incident reports</a>
+      <div class="case-dim" aria-hidden="true"></div>
     </div>
   </div>
-  <span class="hero-cue" aria-hidden="true"><i></i></span>
+  <div class="case-light" aria-hidden="true"></div>
+  <div class="case-vignette" aria-hidden="true"></div>
+  <div class="case-dark" aria-hidden="true"></div>
+  <span class="case-cue" aria-hidden="true">Scroll to read the file</span>
+  <button class="case-skip" type="button" hidden>Skip intro</button>
 </section>
 
 <div class="sheet">
@@ -515,8 +567,6 @@
   </div>
 </footer>
 
-<script src="./vendor/three.r134.min.js" defer></script>
-<script src="./vendor/vanta.net.min.js" defer></script>
 <script src="./vendor/gsap.min.js" defer></script>
 <script src="./vendor/ScrollTrigger.min.js" defer></script>
 <script src="./vendor/SplitText.min.js" defer></script>
@@ -524,5 +574,6 @@
 <script src="./vendor/ScrambleTextPlugin.min.js" defer></script>
 <script src="./vendor/lenis.min.js" defer></script>
 <script src="./app.js?v=stage1" defer></script>
+<script src="./case.js?v=1" defer></script>
 </body>
 </html>

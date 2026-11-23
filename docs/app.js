@@ -6,7 +6,8 @@
   const stack = document.getElementById("stack");
   const packet = document.getElementById("packet");
   const scanEl = document.getElementById("scan");
-  const wall = createPortWall(document.getElementById("scan-canvas"), document.getElementById("scan-count"));
+  // The port wall belonged to the old hero; the case-file hero (case.js) has none.
+  const wall = scanEl ? createPortWall(document.getElementById("scan-canvas"), document.getElementById("scan-count")) : { resize() {}, finish() {}, start() {}, tick() {} };
 
   const motion = root.classList.contains("motion") && "gsap" in window && "ScrollTrigger" in window;
   if (motion) window.__shlabMotion = true;
@@ -26,8 +27,10 @@
 
   if (!motion) {
     wall.finish();
-    scanEl.classList.add("is-done");
-    hero.classList.add("is-secured");
+    if (scanEl) {
+      scanEl.classList.add("is-done");
+      hero.classList.add("is-secured");
+    }
     staticStack();
     return;
   }
@@ -258,6 +261,7 @@
     });
 
     // ── Hero ────────────────────────────────────────────────────────────────
+    if (scanEl) {
     const meshEl = document.getElementById("hero-mesh");
     const frame = scanEl.querySelector(".scan-frame");
     const label = hero.querySelector(".hero-label");
@@ -371,6 +375,8 @@
       onEnter: () => { heroActive = false; },
       onLeaveBack: () => { heroActive = true; },
     });
+
+    }
 
     // ── Board plate: an exploded drawing that assembles as you scroll ─────
     const stage = document.querySelector(".plate-stage");
