@@ -119,7 +119,7 @@
       .to(desk, { filter: "blur(0px)", duration: 1.6, ease: "power2.out" }, 2.4);
 
     // The pile is tossed down from the right.
-    const land = [[70, 40, 7], [-30, 18, -6], [40, -12, 3], [12, 30, -2], [-48, -6, 5], [58, 10, -4], [-16, -20, 2.5], [28, 26, -7], [-16, 14, -3.6]];
+    const land = [[70, 40, 7], [-30, 18, -6], [40, -12, 3], [12, 30, -2], [-48, -6, 5], [58, 10, -4], [-16, -20, 2.5], [28, 26, -7], [-40, 30, 4], [-16, 14, -3.6]]; // one per file, then SH-LAB/01 last
     files.forEach((el, i) => {
       const at = 1.45 + i * 0.075;
       t.set(el, { autoAlpha: 1 }, at).fromTo(
