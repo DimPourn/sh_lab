@@ -363,6 +363,8 @@
       }
     });
 
+    gsap.from(".gaps li", { ...blurIn, duration: 1, stagger: 0.1, ease: "power3.out", scrollTrigger: { trigger: ".gaps", start: "top 88%", once: true } });
+
     gsap.from(".footer-inner > *", { autoAlpha: 0, y: 12, duration: 0.9, stagger: 0.08, ease: "power3.out", scrollTrigger: { trigger: ".footer", start: "top 98%", once: true } });
 
     window.addEventListener("load", () => ScrollTrigger.refresh());

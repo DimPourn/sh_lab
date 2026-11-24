@@ -22,7 +22,16 @@
   const KEY = "shlab-case-intro";
 
   // The stage is drawn at 1280 × 800 (390 wide on phones) and scaled to the viewport.
-  const scale = () => (phone.matches ? sec.clientWidth / 390 : Math.min(sec.clientWidth / 1280, sec.clientHeight / 800));
+  // On phones the open folder (design y 104–664) must also end above the file strip,
+  // or the strip sits on the folder's buttons and takes their taps.
+  const PHONE_FOLDER_BOTTOM = 664 + 12;
+  const stripReserve = () => {
+    if (!strip || getComputedStyle(strip).display === "none") return 0;
+    return strip.offsetHeight + (parseFloat(getComputedStyle(strip).bottom) || 0);
+  };
+  const scale = () => (phone.matches
+    ? Math.min(sec.clientWidth / 390, (sec.clientHeight - stripReserve()) / PHONE_FOLDER_BOTTOM)
+    : Math.min(sec.clientWidth / 1280, sec.clientHeight / 800));
   const fit = () => stage.style.setProperty("--s", scale().toFixed(4));
   fit();
   window.addEventListener("resize", fit);
@@ -66,7 +75,7 @@
     pointerLight();
     wireFiles();
     sectionFiles();
-    ScrollTrigger.create({ trigger: ".sheet", start: "top 30%", end: "bottom top", onToggle: (st) => root.classList.toggle("show-desk", st.isActive) });
+    deskTab();
     document.querySelector(".to-desk")?.addEventListener("click", () => sound.play("paper"));
     ScrollTrigger.refresh();
   }
@@ -263,11 +272,49 @@
       .set(veil, { autoAlpha: 0, yPercent: 0 });
   }
 
+  // The Desk tab shows when the reader scrolls back up (looking for a way out) and tucks
+  // away while they read on or pause, so it never sits on a heading or a stamp for long.
+  function deskTab() {
+    const tab = document.querySelector(".to-desk");
+    if (!tab) return;
+    let inSheet = false, lastY = window.scrollY, idle = null;
+    const show = (on) => root.classList.toggle("show-desk", on);
+    const tuckLater = () => {
+      clearTimeout(idle);
+      idle = setTimeout(() => { if (!tab.matches(":hover, :focus-visible")) show(false); }, 2400);
+    };
+    ScrollTrigger.create({
+      trigger: ".sheet", start: "top 30%", end: "bottom top",
+      onToggle: (st) => { inSheet = st.isActive; root.classList.toggle("in-sheet", inSheet); if (!inSheet) show(false); },
+    });
+    window.addEventListener("scroll", () => {
+      const y = window.scrollY, dy = y - lastY;
+      lastY = y;
+      if (!inSheet || Math.abs(dy) < 3) return;
+      if (dy < 0) { show(true); tuckLater(); } else { show(false); }
+    }, { passive: true });
+    tab.addEventListener("mouseleave", tuckLater);
+    tab.addEventListener("blur", tuckLater);
+  }
+
   // ── Sections as files: covers that open on arrival, stamps, the stapled printout ──
   function sectionFiles() {
     // Each cover opens once, in time, as its file comes into view. (Scrubbing tied it to the
     // scroll, so the last file, which can never reach the top of the screen, stayed half open.)
-    for (const c of document.querySelectorAll(".is-file > .file-cover")) {
+    const covers = Array.from(document.querySelectorAll(".is-file > .file-cover"));
+    // Only the first file plays its whole cover. After that a cover is a screen of scrolling
+    // with nothing to read, so the rest just stamp their tab as they arrive.
+    for (const c of covers.slice(1)) {
+      const tab = c.parentElement.querySelector(":scope > .file-tab");
+      c.remove();
+      if (!tab) continue;
+      gsap.fromTo(tab, { autoAlpha: 0, scale: 1.45, rotation: -5 }, {
+        autoAlpha: 1, scale: 1, rotation: 0, duration: 0.2, ease: "power4.in",
+        scrollTrigger: { trigger: tab.parentElement, start: "top 85%", once: true },
+        onComplete: () => sound.play("stamp", 0.35),
+      });
+    }
+    for (const c of covers.slice(0, 1)) {
       gsap.set(c, { transformPerspective: 1800, transformOrigin: "50% 0%" });
       const t = gsap.timeline({ paused: true })
         .to(c, { rotationX: -94, duration: 0.85, ease: "power2.in" }, 0)
@@ -293,10 +340,9 @@
         onComplete: () => sound.play("stamp", 0.5),
       });
     }
-    const printout = document.querySelector(".printout");
-    if (printout) {
+    for (const printout of document.querySelectorAll(".printout")) {
       gsap.timeline({ scrollTrigger: { trigger: printout, start: "top 85%", once: true } })
-        .from(printout, { y: -36, rotation: -7, autoAlpha: 0, duration: 0.6, ease: "power3.out" })
+        .from(printout, { y: -36, rotation: "-=6", autoAlpha: 0, duration: 0.6, ease: "power3.out" })
         .fromTo(printout.querySelector(".staple"), { scaleX: 1.5, autoAlpha: 0 }, { scaleX: 1, autoAlpha: 1, duration: 0.12, ease: "power4.in", onComplete: () => sound.play("click") }, 0.45);
     }
   }

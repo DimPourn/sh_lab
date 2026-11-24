@@ -17,18 +17,18 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://dimpourn.github.io/sh_lab/">
 <meta property="og:site_name" content="sh_lab">
-<meta property="og:image" content="https://dimpourn.github.io/sh_lab/assets/img/og-desk.jpg">
+<meta property="og:image" content="https://dimpourn.github.io/sh_lab/assets/img/og-slip.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A case file open on a desk under a lamp: a routing slip reading “A homelab, declassified.” beside a security assessment of a Raspberry Pi 5 homelab.">
+<meta property="og:image:alt" content="A routing slip in an open case file reading “A homelab, declassified.”, with a sticky note that says “Tailnet Lock: On”.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://dimpourn.github.io/sh_lab/assets/img/og-desk.jpg">
+<meta name="twitter:image" content="https://dimpourn.github.io/sh_lab/assets/img/og-slip.jpg">
 <link rel="preload" href="./assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./site.css?v=stage2">
+<link rel="stylesheet" href="./site.css?v=stage3">
 <link rel="preload" href="./assets/fonts/courier-prime-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./case.css?v=3">
+<link rel="stylesheet" href="./case.css?v=4">
 <script>(function(){var d=document.documentElement;d.classList.add("js");if(!matchMedia("(prefers-reduced-motion: reduce)").matches){d.classList.add("motion");setTimeout(function(){if(!window.__shlabMotion)d.classList.remove("motion")},3000)}})();</script>
 </head>
 <body>
@@ -388,6 +388,19 @@
             <h3>DNS, on the way out</h3>
             <p>Pi-hole filters lookups for every device on the network. Unbound resolves recursively and validates DNSSEC.</p>
             <p class="tested"><span class="pass">Tested</span> Queried domains with valid and deliberately broken signatures. The resolver rejected the broken ones.</p>
+            <figure class="printout printout-dns" aria-label="Printout of the DNSSEC test queries">
+              <i class="staple" aria-hidden="true"></i>
+              <pre>DNSSEC CHECK · 2026-11-24
+---------------------------------
+$ dig dnssec-failed.org
+  status  SERVFAIL     rejected
+$ dig +cd dnssec-failed.org
+  status  NOERROR      checks off
+$ dig +dnssec ietf.org @unbound
+  flags   qr rd ra ad  validated
+---------------------------------
+resolver  Pi-hole → Unbound</pre>
+            </figure>
           </div>
           <p class="band-tag">Pi-hole · Unbound · DNSSEC</p>
         </li>
@@ -457,7 +470,7 @@
           <pre>ALERTMANAGER · NOTIFICATION
 ---------------------------
 [FIRING:1] synthetic test
-instance    pi5
+instance    [redacted]
 severity    test
 route       phone (push)
 ---------------------------
@@ -643,6 +656,26 @@ resolved    yes</pre>
     </article>
   </div>
 </section>
+
+<section class="is-file section" id="gaps" aria-labelledby="gaps-title">
+  <p class="file-tab" aria-hidden="true"><b>SH-LAB/07</b> Known gaps</p>
+  <div class="shell">
+    <div class="sec-head">
+      <p class="label">Known gaps</p>
+      <div>
+        <h2 id="gaps-title">What this setup doesn’t cover.</h2>
+        <p>Every report above is closed, but the lab still has limits. These are the ones I know about.</p>
+      </div>
+    </div>
+    <ol class="gaps">
+      <li><span class="gap-ref">GAP-1</span><h3>Physical access</h3><p>The board sits in my home. Anyone who can touch it can pull its storage, so everything on this page assumes the room is controlled.</p></li>
+      <li><span class="gap-ref">GAP-2</span><h3>Tailscale’s service</h3><p>Remote access depends on Tailscale for coordination and relays. Tailnet Lock stops its servers from adding a device on their own, but an outage on their side can still cut off remote access.</p></li>
+      <li><span class="gap-ref">GAP-3</span><h3>Upstream images</h3><p>Containers run images built by their own projects. Hardening limits what a bad image could do. It doesn’t prove an image is clean.</p></li>
+      <li><span class="gap-ref">GAP-4</span><h3>Storage wear</h3><p>Flash storage wears out under constant writes. Backups leave the board, but a failed card or drive still means downtime until a restore.</p></li>
+      <li><span class="gap-ref">GAP-5</span><h3>One board</h3><p>There is no failover. If the Pi fails, every service is down until it’s replaced.</p></li>
+    </ol>
+  </div>
+</section>
 </div>
 
 </main>
@@ -666,7 +699,7 @@ resolved    yes</pre>
 <script src="./vendor/DrawSVGPlugin.min.js" defer></script>
 <script src="./vendor/ScrambleTextPlugin.min.js" defer></script>
 <script src="./vendor/lenis.min.js" defer></script>
-<script src="./app.js?v=stage4" defer></script>
-<script src="./case.js?v=4" defer></script>
+<script src="./app.js?v=stage5" defer></script>
+<script src="./case.js?v=5" defer></script>
 </body>
 </html>
