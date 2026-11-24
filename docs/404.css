@@ -1,0 +1,88 @@
+/* 404: the requested file, half fed through a strip-cut shredder on the same desk as the hero. */
+
+@font-face { font-family: "Archivo"; src: url("./assets/fonts/archivo.woff2") format("woff2"); font-weight: 700 800; font-stretch: 68% 85%; font-display: swap; }
+@font-face { font-family: "Instrument Sans"; src: url("./assets/fonts/instrument-sans.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "Courier Prime"; src: url("./assets/fonts/courier-prime-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Courier Prime"; src: url("./assets/fonts/courier-prime-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .55' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .16 0 0 0 0 .04 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --ink-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 2.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  --type: "Courier Prime", "Courier New", ui-monospace, monospace;
+  --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --ink: #1b1d1a;
+  --ink-2: #5b5d55;
+  --paper: #efeee5;
+  --stamp: #b3352b;
+  --manila: #d4b375;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  min-height: 100svh;
+  background-color: #17120c;
+  background-image:
+    radial-gradient(60% 55% at 50% 18%, rgba(255, 226, 170, .16), transparent 72%),
+    radial-gradient(120% 100% at 50% 40%, transparent 50%, rgba(0, 0, 0, .7) 100%),
+    var(--grain),
+    repeating-linear-gradient(91deg, rgba(255, 230, 190, .022) 0 2px, transparent 2px 11px),
+    repeating-linear-gradient(89.4deg, rgba(0, 0, 0, .16) 0 1px, transparent 1px 23px);
+  color: #ecebe3;
+  font: 16px/1.5 "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
+.lost { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.2rem; padding: max(2rem, env(safe-area-inset-top, 0px)) 16px max(2.5rem, env(safe-area-inset-bottom, 0px)); overflow: hidden; }
+.lost-doc { position: relative; width: min(27rem, 100%); }
+
+/* The part of the page that hasn't gone in yet. */
+.lost-feed { overflow: hidden; padding: 1rem 1rem 0; margin: -1rem -1rem 0; }
+/* Its last 4.5rem is already inside the slot (clipped), so the feed-in starts with the edge at the slot. */
+.lost-page { position: relative; margin-bottom: -4.5rem; padding: 1.7rem 1.6rem calc(2.4rem + 4.5rem);background-color: var(--paper); background-image: var(--grain), linear-gradient(180deg, rgba(255, 255, 255, .35), transparent 30%); color: var(--ink); font: .9rem/1.6 var(--type); box-shadow: 0 1px 3px rgba(0, 0, 0, .25), 0 18px 40px -18px rgba(0, 0, 0, .7); }
+.lost-page p { margin: 0 0 1rem; max-width: 34ch; }
+.lost-slip { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: #5b4a27; }
+.lost h1 { margin: .2rem 0 1rem; font: 800 clamp(2.6rem, 11vw, 3.6rem)/.92 var(--display); font-stretch: 72%; letter-spacing: -.005em; text-transform: uppercase; }
+.lost h1 span { display: block; }
+.lost-red { color: var(--stamp); }
+.lost-page .lost-meta { margin: 0; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.lost-stamp { position: absolute; right: 1.2rem; top: 4.6rem; padding: .3rem .7rem .22rem; border: 4px double var(--stamp); border-radius: 4px; color: var(--stamp); font: 800 1.7rem/1 var(--display); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; transform: rotate(9deg); opacity: .85; mix-blend-mode: multiply; -webkit-mask-image: var(--ink-mask); mask-image: var(--ink-mask); }
+
+/* The shredder head. */
+.lost-shredder { position: relative; z-index: 1; height: 2.6rem; margin: 0 -1.1rem; border-radius: 6px; background: linear-gradient(180deg, #34363a, #1c1d20 45%, #111214); box-shadow: 0 10px 18px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .1); }
+.lost-shredder::before { content: ""; position: absolute; left: 1.1rem; right: 1.1rem; top: .45rem; height: 3px; border-radius: 2px; background: #050505; box-shadow: 0 1px 0 rgba(255, 255, 255, .08); }
+.lost-shredder span { position: absolute; right: 1.1rem; bottom: .5rem; font: 700 .58rem/1 var(--type); letter-spacing: .14em; text-transform: uppercase; color: #8b8f94; }
+.lost-led { position: absolute; left: 1.2rem; bottom: .62rem; width: 7px; height: 7px; border-radius: 50%; background: #48d17a; box-shadow: 0 0 8px 2px rgba(72, 209, 122, .55); }
+
+/* What came out the other side. */
+.lost-strips { display: flex; gap: 2px; margin-top: -2px; padding: 0 .1rem; }
+.lost-strips i { flex: 1; height: var(--h, 7rem); transform-origin: 50% 0; transform: rotate(var(--r, 0deg)) translateX(var(--x, 0)); background-color: var(--paper); background-image: var(--grain), repeating-linear-gradient(180deg, transparent 0 .62rem, rgba(27, 29, 26, .38) .62rem .78rem, transparent .78rem 1.25rem); background-position: 0 var(--o, 0); box-shadow: 0 6px 10px -4px rgba(0, 0, 0, .55); clip-path: polygon(0 0, 100% 0, 100% 100%, 60% 97%, 0 100%); }
+.lost-strips i:nth-child(1) { --h: 6.4rem; --r: 2.5deg; --o: .3rem; }
+.lost-strips i:nth-child(2) { --h: 7.6rem; --r: 1.2deg; --o: 0; }
+.lost-strips i:nth-child(3) { --h: 5.8rem; --r: -.8deg; --o: .5rem; }
+.lost-strips i:nth-child(4) { --h: 8.2rem; --r: .6deg; --x: 1px; --o: .1rem; }
+.lost-strips i:nth-child(5) { --h: 7rem; --r: -1.4deg; --o: .6rem; }
+.lost-strips i:nth-child(6) { --h: 8.8rem; --r: .3deg; --o: .2rem; }
+.lost-strips i:nth-child(7) { --h: 6.6rem; --r: 1.8deg; --o: 0; }
+.lost-strips i:nth-child(8) { --h: 7.9rem; --r: -.5deg; --o: .4rem; }
+.lost-strips i:nth-child(9) { --h: 6.1rem; --r: .9deg; --o: .15rem; }
+.lost-strips i:nth-child(10) { --h: 8.4rem; --r: -1.1deg; --o: .55rem; }
+.lost-strips i:nth-child(11) { --h: 7.2rem; --r: -.4deg; --o: .25rem; }
+.lost-strips i:nth-child(12) { --h: 6rem; --r: -2.6deg; --o: .45rem; }
+
+.lost-back { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .55rem 1.1rem .45rem; border-radius: 8px; background-color: var(--manila); background-image: var(--fiber), var(--grain); color: #33270f; font: 700 .8rem/1 var(--type); letter-spacing: .1em; text-transform: uppercase; text-decoration: none; box-shadow: 0 8px 18px rgba(0, 0, 0, .4); transition: transform .16s cubic-bezier(.23, 1, .32, 1); }
+.lost-back:active { transform: scale(.97); }
+.lost-back:focus-visible { outline: 2px solid #ecebe3; outline-offset: 3px; }
+
+/* One pass through the shredder on arrival, then it stops. */
+@media (prefers-reduced-motion: no-preference) {
+  .lost-page { animation: lost-feed 2.4s cubic-bezier(.25, .6, .3, 1) both; }
+  .lost-strips i { animation: lost-out 2.4s cubic-bezier(.25, .6, .3, 1) both; }
+  .lost-led { animation: lost-led 2.4s steps(1, end) both; }
+  .lost-stamp { animation: lost-stamp .2s cubic-bezier(.55, 0, 1, .45) 2.5s both; }
+}
+@keyframes lost-feed { from { transform: translateY(-4.5rem); } }
+@keyframes lost-out { from { transform: rotate(0deg) scaleY(.35); } }
+@keyframes lost-led { 0%, 20%, 40%, 60%, 80% { background: #e0a43a; box-shadow: 0 0 8px 2px rgba(224, 164, 58, .6); } 10%, 30%, 50%, 70%, 90%, 100% { background: #48d17a; } }
+@keyframes lost-stamp { from { opacity: 0; transform: rotate(9deg) scale(1.8); } }

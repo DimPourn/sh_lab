@@ -1,2 +1,5 @@
+# sh_lab robots.txt
+# Reading robots.txt by hand? You'd fit right in.
+# Nothing is hidden on this site. The interesting parts sit behind Tailnet Lock.
 User-agent: *
 Allow: /

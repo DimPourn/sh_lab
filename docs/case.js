@@ -29,6 +29,7 @@
 
   const sound = createSound();
   setupSoundToggle();
+  eggs();
 
   const motion = root.classList.contains("motion") && "gsap" in window && "ScrollTrigger" in window;
   if (!motion) return;
@@ -80,7 +81,7 @@
     gsap.set(frontShade, { opacity: 0 });
     gsap.set(innerShade, { opacity: 0.5 });
     gsap.set(bars, { scaleX: 1 });
-    gsap.set(stamp, { autoAlpha: 0, scale: 1.8, rotation: -9 });
+    gsap.set(stamp, { autoAlpha: 0, scale: 1.45, rotation: -9 });
     gsap.set([slip, tofrom, lede, cta, cue, note], { autoAlpha: 0, y: 10 });
     if (strip) gsap.set(strip, { autoAlpha: 0, y: 16 });
     if (window.SplitText) {
@@ -108,20 +109,28 @@
       .to(walk, { y: 0, duration: 0.3, ease: "sine.out" }, 2.07)
       .to(desk, { filter: "blur(0px)", duration: 1.6, ease: "power2.out" }, 2.4);
 
-    // The pile is tossed down, SH-LAB/01 last and on top.
+    // The pile is tossed down from the right.
     const land = [[70, 40, 7], [-30, 18, -6], [40, -12, 3], [12, 30, -2], [-48, -6, 5], [58, 10, -4], [-16, -20, 2.5], [28, 26, -7], [-16, 14, -3.6]];
-    [...files, main].forEach((el, i, all) => {
-      const last = i === all.length - 1;
-      const at = 1.45 + i * 0.075 + (last ? 0.12 : 0);
+    files.forEach((el, i) => {
+      const at = 1.45 + i * 0.075;
       t.set(el, { autoAlpha: 1 }, at).fromTo(
         el,
         { x: 560 + (i % 3) * 50, y: 760 + (i % 4) * 30, rotation: 26 + (i % 5) * 4, scale: 1.08, "--lift": 1 },
         { x: land[i][0], y: land[i][1], rotation: land[i][2], scale: 1, "--lift": 0, duration: 0.62, ease: "back.out(1.15)" },
         at,
       );
-      if (last || i % 3 === 0) t.call(() => sound.play("thud", last ? 1 : 0.5), null, at + 0.34);
+      if (i % 3 === 0) t.call(() => sound.play("thud", 0.5), null, at + 0.34);
     });
-    t.to(walk, { keyframes: { x: [0, -5, 4, -3, 1.5, 0], y: [0, 3, -2, 1, 0, 0] }, duration: 0.32, ease: "none" }, 2.5);
+    // SH-LAB/01 is dropped on top from just above, already in view with its big label readable.
+    // Browsers time the main content (LCP) by the first large paint, and a file flying in from
+    // off screen is measured at the sliver that was visible, so this one has to arrive in frame.
+    const [mx, my, mr] = land[files.length], dropAt = 2.05;
+    t.fromTo(main,
+      { x: mx + 14, y: my - 34, rotation: mr - 4, scale: 1.16, "--lift": 1 },
+      { x: mx, y: my, rotation: mr, scale: 1, "--lift": 0, duration: 0.42, ease: "power2.in" }, dropAt)
+      .to(main, { autoAlpha: 1, duration: 0.1, ease: "none" }, dropAt)
+      .call(() => sound.play("thud", 1), null, dropAt + 0.42)
+      .to(walk, { keyframes: { x: [0, -5, 4, -3, 1.5, 0], y: [0, 3, -2, 1, 0, 0] }, duration: 0.32, ease: "none" }, dropAt + 0.42);
 
     // Square the pile into an index, pull the top file straight, lean in.
     t.to(files, {
@@ -276,6 +285,14 @@
         onComplete: () => sound.play("stamp", 0.6),
       });
     }
+    const seal = document.querySelector(".footer-stamp");
+    if (seal) {
+      gsap.fromTo(seal, { autoAlpha: 0, scale: 1.8, rotation: -6 }, {
+        autoAlpha: 1, scale: 1, rotation: -6, duration: 0.18, ease: "power4.in",
+        scrollTrigger: { trigger: ".footer", start: "top 95%", once: true },
+        onComplete: () => sound.play("stamp", 0.5),
+      });
+    }
     const printout = document.querySelector(".printout");
     if (printout) {
       gsap.timeline({ scrollTrigger: { trigger: printout, start: "top 85%", once: true } })
@@ -372,7 +389,8 @@
       get on() { return on; },
       set(value) { on = value; try { localStorage.setItem("shlab-sound", value ? "1" : "0"); } catch { /* storage blocked */ } },
       play(name, volume = 1) {
-        if (!on || document.hidden) return;
+        // The context is only created by the first click, tap or key (unlock), never before it.
+        if (!on || document.hidden || !ctx) return;
         const c = ready(); if (!c || c.state !== "running") return;
         kit[name](c, c.currentTime + 0.005, volume);
       },
@@ -388,6 +406,102 @@
     btn.addEventListener("click", () => { sound.set(!sound.on); show(); sound.unlock(); setTimeout(() => sound.play("click"), 30); });
     // Browsers only start audio after a gesture: the first tap anywhere unlocks it if it was left on.
     for (const type of ["pointerdown", "keydown", "touchend"]) window.addEventListener(type, () => sound.unlock(), { once: true, passive: true });
+  }
+
+  // ── Easter eggs: the Konami code, typing sudo, touching the key, and a note in the console ──
+  function eggs() {
+    const slipEl = document.querySelector(".egg-slip");
+    let slipTimer = 0;
+    const slip = (title, text, stampText) => {
+      if (!slipEl) return;
+      const b = document.createElement("b"), p = document.createElement("span");
+      b.textContent = title;
+      p.textContent = text;
+      slipEl.replaceChildren(b, p);
+      if (stampText) {
+        const st = document.createElement("i");
+        st.className = "egg-stamp";
+        st.setAttribute("aria-hidden", "true");
+        st.textContent = stampText;
+        slipEl.append(st);
+      }
+      slipEl.classList.remove("is-on");
+      void slipEl.offsetWidth; // restart the slide-in
+      slipEl.classList.add("is-on");
+      clearTimeout(slipTimer);
+      slipTimer = setTimeout(() => slipEl.classList.remove("is-on"), 6500);
+    };
+
+    let lifted = false;
+    const lift = () => {
+      if (!lifted) {
+        lifted = true;
+        const home = ["127.0.0.1", "127.0.0.0/8"];
+        $$(".case-v.is-redacted").forEach((v, i) => {
+          const value = home[i] || home[0];
+          const shown = v.querySelector("span[aria-hidden]"), sr = v.querySelector(".case-sr"), tip = v.querySelector(".case-tip");
+          if (shown) shown.textContent = value;
+          if (sr) sr.textContent = value;
+          if (tip) tip.textContent = "There’s no place like home.";
+          v.classList.add("is-lifted");
+        });
+      }
+      sound.play("paper");
+      slip("Clearance granted", "Redactions lifted. There’s no place like 127.0.0.1.");
+    };
+    const sudo = () => {
+      sound.play("stamp", 0.7);
+      slip("IR-04 · opened", "visitor is not in the sudoers file. This incident will be reported.", "Reported");
+    };
+
+    // ↑ ↑ ↓ ↓ ← → ← → B A, and "sudo" typed anywhere on the page.
+    const konami = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft", "arrowright", "arrowleft", "arrowright", "b", "a"];
+    let at = 0, typed = "";
+    window.addEventListener("keydown", (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      if (e.target instanceof Element && e.target.closest("input, textarea, select, [contenteditable]")) return;
+      const k = (e.key || "").toLowerCase();
+      if (k === konami[at]) at++;
+      else at = k === "arrowup" ? (at === 2 ? 2 : 1) : 0;
+      if (at === konami.length) { at = 0; lift(); }
+      if (k.length === 1) {
+        typed = (typed + k).slice(-8);
+        if (typed.endsWith("sudo")) { typed = ""; sudo(); }
+      }
+    });
+
+    // The key blinks like a real one waiting for a touch, then "types" a one-time password,
+    // the way a YubiKey brushed by accident pastes cccccc… into a chat.
+    if (key) {
+      const tip = key.querySelector(".case-tip"), idle = tip ? tip.textContent : "";
+      const modhex = "cbdefghijklnrtuv";
+      let timer = 0;
+      const touch = () => {
+        clearTimeout(timer);
+        key.classList.remove("is-touched", "is-typing");
+        if (tip) tip.textContent = idle;
+        void key.offsetWidth; // restart the blink
+        key.classList.add("is-touched");
+        sound.play("click", 0.8);
+        timer = setTimeout(() => {
+          let otp = "cccccc";
+          for (let i = 0; i < 38; i++) otp += modhex[Math.floor(Math.random() * 16)];
+          if (tip) tip.textContent = otp;
+          key.classList.add("is-typing");
+          timer = setTimeout(() => {
+            key.classList.remove("is-touched", "is-typing");
+            if (tip) tip.textContent = idle;
+          }, 3400);
+        }, 900);
+      };
+      key.addEventListener("click", touch);
+      key.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); touch(); }
+      });
+    }
+
+    console.log("%cSH-LAB/01 · DECLASSIFIED", "font: 700 13px/1.8 monospace; letter-spacing: .12em; color: #b3352b");
+    console.log("Reading the console? Good instinct.\nEverything here is static and self-hosted, behind a strict Content Security Policy.\nSource: https://github.com/DimPourn/sh_lab\nOn the desk, try the Konami code, or type sudo.");
   }
 
   // If anything throws, fall back to the static opened file.

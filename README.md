@@ -12,6 +12,10 @@ A cybersecurity homelab by Dimitris Pournatzis. I use a Raspberry Pi 5 to practi
 
 ## Website
 
-GitHub Pages serves the static portfolio from `docs/`. It is plain HTML and CSS with self-hosted GSAP, Lenis, Vanta, and three.js in `docs/vendor/`, self-hosted fonts, and no third-party requests. It requires no build step.
+GitHub Pages serves the static portfolio from `docs/`. It is plain HTML and CSS with self-hosted GSAP and Lenis in `docs/vendor/`, self-hosted fonts, and no third-party requests. It requires no build step.
+
+A strict Content Security Policy is set as a meta tag, because GitHub Pages can't send custom headers. Scripts load only from the site itself, plus one inline script allowed by its hash. If you edit that inline script in `docs/index.html`, update the hash in the policy, or browsers will block it.
+
+`tools/` holds the two scripts that produced generated assets: `trim-fonts.py` trims the fonts, and `og-desk.py` shoots the link-preview card.
 
 Preview it locally with `python3 -m http.server --bind localhost --directory docs 8080`.
