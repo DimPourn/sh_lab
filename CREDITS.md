@@ -26,6 +26,5 @@ None declares a Reserved Font Name.
 
 ## Images
 
-`docs/assets/img/og-slip.jpg` (the link preview) and `.github/assets/desk.jpg` (the README image)
-are screenshots of this site. The desk, folders and paper textures are CSS and inline SVG; no
+`docs/assets/img/og-slip.jpg` (the link preview and README image) is a screenshot of this site. The desk, folders and paper textures are CSS and inline SVG; no
 stock images are used.
