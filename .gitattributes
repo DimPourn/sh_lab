@@ -1,0 +1,4 @@
+# GitHub's language stats treat docs/ as documentation by default, but the site lives there.
+docs/** linguist-documentation=false
+# Third-party libraries are not my code.
+docs/vendor/** linguist-vendored
