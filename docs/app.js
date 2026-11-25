@@ -281,8 +281,29 @@
     });
 
     // ── Hardening: the excerpt types itself, annotations light their line ──
+    // Wrap each line in .ln > .lt by moving the existing nodes. No HTML is parsed, so this code
+    // has no HTML sink. Newlines only occur in the excerpt's top-level text, never inside a span.
     const code = document.querySelector(".code code");
-    code.innerHTML = code.innerHTML.split("\n").map((line) => `<span class="ln"><span class="lt">${line}</span></span>`).join("");
+    const lines = [];
+    let lt = null;
+    const newLine = () => {
+      const ln = document.createElement("span");
+      ln.className = "ln";
+      lt = document.createElement("span");
+      lt.className = "lt";
+      ln.appendChild(lt);
+      lines.push(ln);
+    };
+    newLine();
+    Array.from(code.childNodes).forEach((node) => {
+      if (node.nodeType !== Node.TEXT_NODE) { lt.appendChild(node); return; }
+      node.data.split("\n").forEach((part, i) => {
+        if (i > 0) newLine();
+        if (part) lt.appendChild(document.createTextNode(part));
+      });
+    });
+    code.textContent = "";
+    lines.forEach((ln) => code.appendChild(ln));
     const codeLines = gsap.utils.toArray(".code .ln");
     const typing = gsap.timeline({
       scrollTrigger: { trigger: ".code-card", start: "top 80%", once: true },
