@@ -26,5 +26,6 @@ None declares a Reserved Font Name.
 
 ## Images
 
-`docs/assets/img/og-slip.jpg` (the link preview and README image) is a screenshot of this site. The desk, folders and paper textures are CSS and inline SVG; no
-stock images are used.
+`docs/assets/img/og-slip.jpg` (the link preview and README image) is a screenshot of this site. The desk and folders are CSS and inline SVG. The paper grain,
+folder fiber and stamp ink in `docs/assets/img/tex/` are noise tiles baked from SVG filters by
+`tools/bake-textures.py`. No stock images are used.

@@ -25,7 +25,7 @@ case file.
 
 Static HTML, CSS and JavaScript, served by GitHub Pages from `docs/`, with a strict Content
 Security Policy, self-hosted libraries and fonts, and no third-party requests. `tools/` holds the
-scripts that render the preview image and trim the fonts.
+scripts that render the preview image, bake the paper textures and trim the fonts.
 
 Preview it locally with `python3 -m http.server --bind localhost --directory docs 8080`.
 

@@ -6,9 +6,11 @@
 @font-face { font-family: "Courier Prime"; src: url("./assets/fonts/courier-prime-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
 :root {
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .55' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .16 0 0 0 0 .04 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
-  --ink-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 2.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  /* Paper grain, folder fiber and stamp ink: bitmaps baked from SVG noise by tools/bake-textures.py.
+     Live SVG filters were redrawn on the CPU by Firefox whenever a folder moved or scaled. */
+  --grain: url("/sh_lab/assets/img/tex/grain.webp");
+  --fiber: image-set(url("/sh_lab/assets/img/tex/fiber-2x.webp") 2x);
+  --ink-mask: image-set(url("/sh_lab/assets/img/tex/ink-2x.webp") 2x);
   --type: "Courier Prime", "Courier New", ui-monospace, monospace;
   --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --ink: #1b1d1a;
